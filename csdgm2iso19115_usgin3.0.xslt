@@ -66,7 +66,8 @@ SMR 2018-05-30 massive revision to adapt for use with xslt 1.0 so php and python
 	<!-- ********************** templates by SMR   **************************** -->
 
 	<xsl:variable name="currentDateTime">
-		<xsl:value-of select="datetime:date-time()"/>
+		<!--<xsl:value-of select="datetime:date-time()"/>-->
+		<xsl:value-of select="string('2018-05-30T20:21:00')"/>
 	</xsl:variable>
 
 <!-- use these to implement uppercase and lower case string functions -->
