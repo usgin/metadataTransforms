@@ -551,9 +551,9 @@ SMR 2018-05-30 massive revision to adapt for use with xslt 1.0 so php and python
 										<xsl:attribute name="gco:nilReason">
 											<xsl:value-of select="substring-after($dateFormat, 'nil')"/>
 										</xsl:attribute>
-										<xsl:attribute name="xlink:title">
+										<!--<xsl:attribute name="xlink:title">
 											<xsl:value-of select="concat(string('Cannot interpret datestring: '), pubdate, 'T: ', pubtime)"/>
-										</xsl:attribute>
+										</xsl:attribute>-->
 										<gco:DateTime>1900-01-01T12:00:00</gco:DateTime>
 									</xsl:when>
 									<xsl:otherwise>
@@ -1611,9 +1611,9 @@ SMR 2018-05-30 massive revision to adapt for use with xslt 1.0 so php and python
 								<xsl:attribute name="gco:nilReason">
 									<xsl:value-of select="substring-after($dateFormat, 'nil')"/>
 								</xsl:attribute>
-								<xsl:attribute name="xlink:title">
+								<!--<xsl:attribute name="xlink:title">
 									<xsl:value-of select="concat(string('Cannot interpret datestring: '), string($var_metadataRoot/metainfo/metd[1]))"/>
-								</xsl:attribute>
+								</xsl:attribute>-->
 								<gco:DateTime>1900-01-01T12:00:00</gco:DateTime>
 							</xsl:when>
 							<xsl:otherwise>
@@ -3882,7 +3882,7 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 																</xsl:choose>
 															</xsl:when>
 															<xsl:otherwise>
-																<xsl:attribute name="indeterminatePosition">unknown</xsl:attribute>
+																<xsl:attribute name="gco:nilReason">unknown</xsl:attribute>
 															</xsl:otherwise>
 														</xsl:choose>
 													</gmd:dateTime>
