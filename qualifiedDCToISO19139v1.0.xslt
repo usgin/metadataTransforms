@@ -667,8 +667,9 @@
                                 <!-- date is in format we don't have parser for -->
                                 <!-- insert the date string in the xlink title so its in the result doc somewhere... -->
                                 <xsl:attribute name="xlink:title">
-                                    <xsl:value-of select="normalize-space(string(.))"/>
+                                    <xsl:value-of select="concat('can not parse date:', normalize-space(string(.)))"/>
                                 </xsl:attribute>
+                                <xsl:attribute name="gco:nilReason">unknown</xsl:attribute>
                             </xsl:if>
                             <gmd:CI_Date>
                                 <gmd:date>
