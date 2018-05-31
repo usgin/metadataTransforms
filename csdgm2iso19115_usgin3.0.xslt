@@ -1671,30 +1671,30 @@ SMR 2018-05-30 massive revision to adapt for use with xslt 1.0 so php and python
 						<xsl:variable name="var_rowCount_exists">
 							<xsl:choose>
 							<xsl:when test="rowcount">
-								<xsl:value-of select="xs:decimal(1)"/>
+								<xsl:value-of select="number(1)"/>
 							</xsl:when>
 								<xsl:otherwise>
-									<xsl:value-of select="xs:decimal(0)"/>
+									<xsl:value-of select="number(0)"/>
 								</xsl:otherwise>
 							</xsl:choose>
 						</xsl:variable>
 						<xsl:variable name="var_colCount_exists">
 							<xsl:choose>
 								<xsl:when test="colcount">
-									<xsl:value-of select="xs:decimal(1)"/>
+									<xsl:value-of select="number(1)"/>
 								</xsl:when>
 								<xsl:otherwise>
-									<xsl:value-of select="xs:decimal(0)"/>
+									<xsl:value-of select="number(0)"/>
 								</xsl:otherwise>
 							</xsl:choose>
 						</xsl:variable>
 						<xsl:variable name="var_vrtCount_exists">
 							<xsl:choose>
 								<xsl:when test="vrtcount">
-									<xsl:value-of select="xs:decimal(1)"/>
+									<xsl:value-of select="number(1)"/>
 								</xsl:when>
 								<xsl:otherwise>
-									<xsl:value-of select="xs:decimal(0)"/>
+									<xsl:value-of select="number(0)"/>
 								</xsl:otherwise>
 							</xsl:choose>
 						</xsl:variable>
@@ -1704,8 +1704,7 @@ SMR 2018-05-30 massive revision to adapt for use with xslt 1.0 so php and python
 									test="($var_rowCount_exists + $var_colCount_exists + $var_vrtCount_exists) > 0">
 									<gco:Integer>
 										<xsl:value-of
-										select="string(xs:integer($var_rowCount_exists + $var_colCount_exists + $var_vrtCount_exists))"
-										/>
+										select="string($var_rowCount_exists + $var_colCount_exists + $var_vrtCount_exists)"/>
 									</gco:Integer>
 								</xsl:when>
 								<xsl:otherwise>
@@ -1811,7 +1810,7 @@ SMR 2018-05-30 massive revision to adapt for use with xslt 1.0 so php and python
 										codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_CellGeometryCode">
 										<xsl:attribute name="codeListValue">
 											<xsl:value-of
-										select="string(xs:anyURI($var_rasttypeGeometryType))"
+										select="string($var_rasttypeGeometryType)"
 										/>
 										</xsl:attribute>
 										<xsl:variable name="var_rasttypeGeometryCode">
@@ -2003,8 +2002,6 @@ addresses, linear reference systems, and River Reach codes. -->
 											<xsl:value-of select="string(' ')"/>
 										</xsl:if>
 									</xsl:for-each>
-									<!--xsl:value-of select="$var_metadataRoot/metainfo/metextns/onlink"/>
-										<xsl:value-of select="string(xs:anyURI(normalize-space(string(.))))"/> -->
 								</gmd:URL>
 							</gmd:linkage>
 							<xsl:for-each select="metprof">
@@ -2740,22 +2737,6 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 											<gmd:DS_AssociationTypeCode
 											codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#DS_AssociationTypeCode"
 											codeListValue="largerWorkCitation" codeSpace="002">
-												<!--xsl:variable name="var689_cond_result_exists">
-														<xsl:if test="exists(citeinfo/origin)">
-															<xsl:variable name="var691_cond_result_exists" select="(if (exists(citeinfo/origin)) then 'http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#DS_AssociationTypeCode' else ())"/>
-															<xsl:if test="exists($var691_cond_result_exists)">
-																<xsl:value-of select="$var691_cond_result_exists"/>
-															</xsl:if>
-														</xsl:if>
-													</xsl:variable>
-													<xsl:if test="exists($var689_cond_result_exists)">
-														<xsl:attribute name="codeList"><xsl:value-of select="string(xs:anyURI($var689_cond_result_exists))"/></xsl:attribute>
-													</xsl:if>
-													<xsl:attribute name="codeListValue"><xsl:value-of select="string(xs:anyURI($var688_cond_result_exists))"/></xsl:attribute>
-													<xsl:variable name="var692_cond_result_exists" select="(if (exists(citeinfo/origin)) then '002' else ())"/>
-													<xsl:if test="exists($var692_cond_result_exists)">
-														<xsl:attribute name="codeSpace"><xsl:value-of select="string(xs:anyURI($var692_cond_result_exists))"/></xsl:attribute>
-													</xsl:if -->
 												<xsl:value-of select="largerWorkCitation"/>
 											</gmd:DS_AssociationTypeCode>
 											<!--/xsl:if -->
@@ -2901,10 +2882,8 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 											<gmd:westBoundLongitude>
 												<gco:Decimal>
 													<xsl:choose>
-														<xsl:when test="number(spdom/bounding/westbc) != NaN">
-															<xsl:value-of
-												select="string(xs:decimal(spdom/bounding/westbc))"
-												/>
+														<xsl:when test="number(spdom/bounding/westbc) = spdom/bounding/westbc">
+															<xsl:value-of select="string(spdom/bounding/westbc)"/>
 														</xsl:when>
 														<xsl:otherwise>
 															<xsl:value-of select="string(-179.9)"/>
@@ -2916,10 +2895,8 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 												<gco:Decimal>
 													<xsl:choose>
 														<xsl:when
-												test="number(spdom/bounding/eastbc) != NaN">
-															<xsl:value-of
-												select="string(xs:decimal(spdom/bounding/eastbc))"
-												/>
+															test="number(spdom/bounding/eastbc) = spdom/bounding/eastbc">
+															<xsl:value-of select="string(spdom/bounding/eastbc)"/>
 														</xsl:when>
 														<xsl:otherwise>
 															<xsl:value-of select="string(-60)"/>
@@ -2931,10 +2908,8 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 												<gco:Decimal>
 													<xsl:choose>
 														<xsl:when
-												test="number(spdom/bounding/southbc) != NaN">
-															<xsl:value-of
-												select="string(xs:decimal(spdom/bounding/southbc))"
-												/>
+															test="number(spdom/bounding/southbc) = spdom/bounding/southbc">
+															<xsl:value-of select="string(spdom/bounding/southbc)"/>
 														</xsl:when>
 														<xsl:otherwise>
 															<xsl:value-of select="string(14)"/>
@@ -2946,10 +2921,8 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 												<gco:Decimal>
 													<xsl:choose>
 														<xsl:when
-												test="number(spdom/bounding/northbc) != NaN">
-															<xsl:value-of
-												select="string(xs:decimal(spdom/bounding/northbc))"
-												/>
+															test="number(spdom/bounding/northbc) = spdom/bounding/northbc">
+															<xsl:value-of select="string(spdom/bounding/northbc)"/>
 														</xsl:when>
 														<xsl:otherwise>
 															<xsl:value-of select="string(170)"/>
@@ -2979,25 +2952,6 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 																			</xsl:if>
 																		</xsl:for-each>
 																	
-<!--																	<xsl:variable name="var584_cond_result_exists">
-																		<xsl:choose>
-																			<xsl:when test="$var587_map_select_grngpoin">
-																				<xsl:for-each select="dsgpolyo/grngpoin">
-																					<xsl:value-of select="concat(string(gringlat), ', ', string(gringlon), '; ')"/>
-																				</xsl:for-each>
-																			</xsl:when>
-																			<xsl:otherwise>
-																				<xsl:for-each select="dsgpolyo/gring">
-																					<xsl:value-of select="string(.)"/>
-																				</xsl:for-each>
-																			</xsl:otherwise>
-																		</xsl:choose>
-																	</xsl:variable>
-																	<xsl:for-each select="$var584_cond_result_exists">
-																		<xsl:attribute name="decimal">
-																			<xsl:value-of select="normalize-space(.)"/>
-																		</xsl:attribute>
-																	</xsl:for-each>-->
 																</gml:coordinates>
 															</gml:LinearRing>
 														</gml:interior>
@@ -4303,7 +4257,7 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 										</xsl:attribute>
 										<xsl:attribute name="codeList">
 											<xsl:value-of
-												select="string(xs:anyURI('http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ClassificationCode'))"
+												select="string('http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ClassificationCode')"
 											/>
 										</xsl:attribute>
 										<xsl:variable name="var2388_result_securityClassCode">
@@ -4395,55 +4349,6 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 									</xsl:otherwise>
 								</xsl:choose>
 								<!-- metadata review date; if present will be concatenated with the maintenance note -->:
-								<!--xsl:for-each select="$var_metadataRoot/metainfo/metrd">
-									<xsl:variable name="var2417_cond_result_logicalor">
-										<xsl:if test="not(((contains(lower-case(normalize-space(string(.))), 'unknown') or contains(lower-case(normalize-space(string(.))), 'unpublished')) or contains(lower-case(normalize-space(string(.))), 'present')))">
-											<xsl:variable name="var2422_map_result_distinctvalues">
-												<xsl:for-each select="distinct-values(if (((contains(lower-case(normalize-space(string(.))), 'unknown') or contains(lower-case(normalize-space(string(.))), 'unpublished')) or contains(lower-case(normalize-space(string(.))), 'present'))) then () else concat(substring(lower-case(normalize-space(string(.))), 0, 5), '-', substring(lower-case(normalize-space(string(.))), 5, 2), '-', substring(lower-case(normalize-space(string(.))), 7,2)))">
-													<xsl:choose>
-														<xsl:when test="ends-with(., '-')">
-															<xsl:if test="ends-with(., '-')">
-																<xsl:if test="exists((if (((('0' != .) and ('false' != .)) and boolean(.))) then substring(., xs:double(xs:decimal(0)), xs:double(string-length(.))) else ()))">
-																	<xsl:value-of select="(if (((('0' != .) and ('false' != .)) and boolean(.))) then substring(., xs:double(xs:decimal(0)), xs:double(string-length(.))) else ())"/>
-																</xsl:if>
-															</xsl:if>
-														</xsl:when>
-														<xsl:otherwise>
-															<xsl:value-of select="."/>
-														</xsl:otherwise>
-													</xsl:choose>
-												</xsl:for-each>
-											</xsl:variable>
-											<xsl:variable name="var2421_map_result_distinctvalues">
-												<xsl:for-each select="distinct-values($var2422_map_result_distinctvalues)">
-													<xsl:variable name="var2427_cond_result_endswith">
-														<xsl:choose>
-															<xsl:when test="ends-with(normalize-space(.), '-')">
-																<xsl:if test="ends-with(normalize-space(.), '-')">
-																	<xsl:if test="exists((if (((('0' != normalize-space(.)) and ('false' != normalize-space(.))) and boolean(normalize-space(.)))) then substring(normalize-space(.), xs:double(xs:decimal(0)), xs:double((xs:decimal(string-length(normalize-space(.))) - xs:decimal(0)))) else ()))">
-																		<xsl:value-of select="(if (((('0' != normalize-space(.)) and ('false' != normalize-space(.))) and boolean(normalize-space(.)))) then substring(normalize-space(.), xs:double(xs:decimal(0)), xs:double((xs:decimal(string-length(normalize-space(.))) - xs:decimal(0)))) else ())"/>
-																	</xsl:if>
-																</xsl:if>
-															</xsl:when>
-															<xsl:otherwise>
-																<xsl:value-of select="."/>
-															</xsl:otherwise>
-														</xsl:choose>
-													</xsl:variable>
-													<xsl:if test="exists($var2427_cond_result_endswith)">
-														<xsl:value-of select="$var2427_cond_result_endswith"/>
-													</xsl:if>
-												</xsl:for-each>
-											</xsl:variable>
-											<xsl:if test="exists($var2421_map_result_distinctvalues)">
-												<xsl:value-of select="string-join($var2421_map_result_distinctvalues, ' ')"/>
-											</xsl:if>
-										</xsl:if>
-									</xsl:variable>
-									<xsl:for-each select="$var2417_cond_result_logicalor">
-										<xsl:value-of select="string(normalize-space(.))"/>
-									</xsl:for-each>
-								</xsl:for-each -->
 							</xsl:variable>
 								<gco:CharacterString>
 									<xsl:value-of
