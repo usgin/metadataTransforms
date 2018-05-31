@@ -2047,8 +2047,7 @@ addresses, linear reference systems, and River Reach codes. -->
 		<!-- the following text is modified from FGDC_Classic for Web body
 An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC look and feel created by mp -->
 									Other sections: 
-									<xsl:for-each select="$var_metadataRoot/spdoinfo">
-										Spatial Data Organization: 
+									<xsl:for-each select="$var_metadataRoot/spdoinfo">Spatial Data Organization: 
 										<xsl:for-each select="indspref">
 											Indirect_Spatial_Reference_Method: <xsl:value-of select="."/>
 										</xsl:for-each>
@@ -2099,92 +2098,67 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 									</xsl:for-each>
 									<!-- Spatial Reference text blob gets put in the abstract if its present.-->
 									<xsl:for-each select="$var_metadataRoot/spref">
-										Spatial_Reference_Information: <xsl:for-each
-											select="horizsys">
-											Horizontal_Coordinate_System_Definition: <xsl:for-each
-												select="geograph"> Geographic: <xsl:for-each
-												select="latres"> Latitude_Resolution:
-													<xsl:value-of select="."/>
+										Spatial_Reference_Information: <xsl:for-each select="horizsys">
+											Horizontal_Coordinate_System_Definition: 
+											<xsl:for-each select="geograph"> Geographic: 
+												<xsl:for-each select="latres"> Latitude_Resolution:	<xsl:value-of select="."/>
 												</xsl:for-each>
-												<xsl:for-each select="longres">
-												Longitude_Resolution: <xsl:value-of select="."/>
+												<xsl:for-each select="longres">	Longitude_Resolution: <xsl:value-of select="."/>
 												</xsl:for-each>
-												<xsl:for-each select="geogunit">
-												Geographic_Coordinate_Units: <xsl:value-of
-												select="."/>
+												<xsl:for-each select="geogunit"> Geographic_Coordinate_Units: <xsl:value-of	select="."/>
 												</xsl:for-each>
 											</xsl:for-each>
 											<xsl:for-each select="planar"> Planar: <xsl:for-each
-												select="mapproj"> Map_Projection: <xsl:for-each
-												select="mapprojn"> Map_Projection_Name:
-														<xsl:value-of select="."/>
+												select="mapproj"> Map_Projection: 
+												<xsl:for-each select="mapprojn"> Map_Projection_Name:<xsl:value-of select="."/>
+													
 													</xsl:for-each>
-													<xsl:for-each select="albers">
-												Albers_Conical_Equal_Area: </xsl:for-each>
-													<xsl:for-each select="azimequi">
-												Azimuthal_Equidistant: </xsl:for-each>
+													<xsl:for-each select="albers">	Albers_Conical_Equal_Area: </xsl:for-each>
+													<xsl:for-each select="azimequi"> Azimuthal_Equidistant: </xsl:for-each>
 													<xsl:for-each select="equicon"> Equidistant_Conic: </xsl:for-each>
 													<xsl:for-each select="equirect"> Equirectangular: </xsl:for-each>
-													<xsl:for-each select="gvnsp">
-												General_Vertical_Near-sided_Perspective: </xsl:for-each>
+													<xsl:for-each select="gvnsp"> General_Vertical_Near-sided_Perspective: </xsl:for-each>
 													<xsl:for-each select="gnomonic"> Gnomonic: </xsl:for-each>
-													<xsl:for-each select="lamberta">
-												Lambert_Azimuthal_Equal_Area: </xsl:for-each>
-													<xsl:for-each select="lambertc">
-												Lambert_Conformal_Conic: </xsl:for-each>
+													<xsl:for-each select="lamberta"> Lambert_Azimuthal_Equal_Area: </xsl:for-each>
+													<xsl:for-each select="lambertc"> Lambert_Conformal_Conic: </xsl:for-each>
 													<xsl:for-each select="mercator"> Mercator: </xsl:for-each>
-													<xsl:for-each select="modsak">
-												Modified_Stereographic_for_Alaska: </xsl:for-each>
+													<xsl:for-each select="modsak"> Modified_Stereographic_for_Alaska: </xsl:for-each>
 													<xsl:for-each select="miller"> Miller_Cylindrical: </xsl:for-each>
 													<xsl:for-each select="obqmerc"> Oblique_Mercator: </xsl:for-each>
 													<xsl:for-each select="orthogr"> Orthographic: </xsl:for-each>
-													<xsl:for-each select="polarst">
-												Polar_Stereographic: </xsl:for-each>
+													<xsl:for-each select="polarst"> Polar_Stereographic: </xsl:for-each>
 													<xsl:for-each select="polycon"> Polyconic: </xsl:for-each>
 													<xsl:for-each select="robinson"> Robinson: </xsl:for-each>
 													<xsl:for-each select="sinusoid"> Sinusoidal: </xsl:for-each>
-													<xsl:for-each select="spaceobq">
-												Space_Oblique_Mercator_(Landsat): </xsl:for-each>
+													<xsl:for-each select="spaceobq"> Space_Oblique_Mercator_(Landsat): </xsl:for-each>
 													<xsl:for-each select="stereo"> Stereographic: </xsl:for-each>
-													<xsl:for-each select="transmer">
-												Transverse_Mercator: </xsl:for-each>
+													<xsl:for-each select="transmer"> Transverse_Mercator: </xsl:for-each>
 													<xsl:for-each select="vdgrin"> van_der_Grinten: </xsl:for-each>
 													<xsl:apply-templates select="*"/>
 													<!-- this is where the work gets done, in the template for each projection -->
 												</xsl:for-each>
 												<xsl:for-each select="gridsys">
 												Grid_Coordinate_System: <xsl:for-each
-												select="gridsysn"> Grid_Coordinate_System_Name:
-														<xsl:value-of select="."/>
+												select="gridsysn"> Grid_Coordinate_System_Name:	<xsl:value-of select="."/>
 													</xsl:for-each>
-													<xsl:for-each select="utm">
-												Universal_Transverse_Mercator: <xsl:for-each
-												select="utmzone"> UTM_Zone_Number: <xsl:value-of
-												select="."/>
+													<xsl:for-each select="utm">	Universal_Transverse_Mercator: 
+														<xsl:for-each select="utmzone"> UTM_Zone_Number: <xsl:value-of select="."/>
 														</xsl:for-each>
-														<xsl:for-each select="transmer">
-												Transverse_Mercator: </xsl:for-each>
+														<xsl:for-each select="transmer"> Transverse_Mercator: </xsl:for-each>
 														<xsl:apply-templates select="transmer"/>
 													</xsl:for-each>
-													<xsl:for-each select="ups">
-												Universal_Polar_Stereographic: <xsl:for-each
-												select="upszone"> UPS_Zone_Identifier:
-															<xsl:value-of select="."/>
+													<xsl:for-each select="ups"> Universal_Polar_Stereographic: 
+														<xsl:for-each select="upszone"> UPS_Zone_Identifier: <xsl:value-of select="."/>
 														</xsl:for-each>
-														<xsl:for-each select="polarst">
-												Polar_Stereographic: </xsl:for-each>
+														<xsl:for-each select="polarst"> Polar_Stereographic: </xsl:for-each>
 														<xsl:apply-templates select="polarst"/>
 													</xsl:for-each>
-													<xsl:for-each select="spcs">
-												State_Plane_Coordinate_System: <xsl:for-each
-												select="spcszone"> SPCS_Zone_Identifier:
-															<xsl:value-of select="."/>
+													<xsl:for-each select="spcs"> State_Plane_Coordinate_System: 
+														<xsl:for-each select="spcszone"> SPCS_Zone_Identifier: <xsl:value-of select="."/>
 														</xsl:for-each>
-														<xsl:for-each select="lambertc">
-												Lambert_Conformal_Conic: </xsl:for-each>
+														<xsl:for-each select="lambertc"> Lambert_Conformal_Conic: </xsl:for-each>
 														<xsl:apply-templates select="lambertc"/>
-														<xsl:for-each select="transmer">
-												Transverse_Mercator: </xsl:for-each>
+														<xsl:for-each select="transmer"> Transverse_Mercator: </xsl:for-each>
 														<xsl:apply-templates select="transmer"/>
 														<xsl:for-each select="obqmerc"> Oblique_Mercator: </xsl:for-each>
 														<xsl:apply-templates select="obqmerc"/>
@@ -2192,64 +2166,46 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 														<xsl:apply-templates select="polycon"/>
 													</xsl:for-each>
 													<xsl:for-each select="arcsys">
-												ARC_Coordinate_System: <xsl:for-each
-												select="arczone"> ARC_System_Zone_Identifier:
-															<xsl:value-of select="."/>
+												ARC_Coordinate_System: 
+														<xsl:for-each select="arczone"> ARC_System_Zone_Identifier:	<xsl:value-of select="."/>
 														</xsl:for-each>
 														<xsl:for-each select="equirect"> Equirectangular: </xsl:for-each>
 														<xsl:apply-templates select="equirect"/>
-														<xsl:for-each select="azimequi">
-												Azimuthal_Equidistant: </xsl:for-each>
+														<xsl:for-each select="azimequi"> Azimuthal_Equidistant: </xsl:for-each>
 														<xsl:apply-templates select="azimequi"/>
 													</xsl:for-each>
 													<xsl:for-each select="othergrd">
-												Other_Grid_System's_Definition: <xsl:value-of
-												select="."/>
+												Other_Grid_System's_Definition: <xsl:value-of select="."/>
 													</xsl:for-each>
 												</xsl:for-each>
 												<xsl:for-each select="localp"> Local_Planar:
-													<xsl:for-each select="localpd">
-												Local_Planar_Description: <xsl:value-of select="."
-												/>
+													<xsl:for-each select="localpd">	Local_Planar_Description: <xsl:value-of select="."/>
 													</xsl:for-each>
-													<xsl:for-each select="localpgi">
-												Local_Planar_Georeference_Information:
-														<xsl:value-of select="."/>
+													<xsl:for-each select="localpgi">Local_Planar_Georeference_Information:<xsl:value-of select="."/>
 													</xsl:for-each>
 												</xsl:for-each>
 												<xsl:for-each select="planci">
-												Planar_Coordinate_Information: <xsl:for-each
-												select="plance">
-												Planar_Coordinate_Encoding_Method: <xsl:value-of
-												select="."/>
+												Planar_Coordinate_Information: <xsl:for-each select="plance">
+												Planar_Coordinate_Encoding_Method: <xsl:value-of select="."/>
 													</xsl:for-each>
 													<xsl:for-each select="coordrep">
-												Coordinate_Representation: <xsl:for-each
-												select="absres"> Abscissa_Resolution:
-															<xsl:value-of select="."/>
+												Coordinate_Representation: 
+														<xsl:for-each select="absres">Abscissa_Resolution:	<xsl:value-of select="."/>
 														</xsl:for-each>
-														<xsl:for-each select="ordres">
-												Ordinate_Resolution: <xsl:value-of select="."/>
+														<xsl:for-each select="ordres">Ordinate_Resolution: <xsl:value-of select="."/>
 														</xsl:for-each>
 													</xsl:for-each>
 													<xsl:for-each select="distbrep">
-												Distance_and_Bearing_Representation: <xsl:for-each
-												select="distres"> Distance_Resolution:
-															<xsl:value-of select="."/>
+												Distance_and_Bearing_Representation: 
+														<xsl:for-each select="distres"> Distance_Resolution: <xsl:value-of select="."/>
 														</xsl:for-each>
-														<xsl:for-each select="bearres">
-												Bearing_Resolution: <xsl:value-of select="."/>
+														<xsl:for-each select="bearres">	Bearing_Resolution: <xsl:value-of select="."/>
 														</xsl:for-each>
-														<xsl:for-each select="bearunit"> Bearing_Units:
-															<xsl:value-of select="."/>
+														<xsl:for-each select="bearunit"> Bearing_Units:	<xsl:value-of select="."/>
 														</xsl:for-each>
-														<xsl:for-each select="bearrefd">
-												Bearing_Reference_Direction: <xsl:value-of
-												select="."/>
+														<xsl:for-each select="bearrefd"> Bearing_Reference_Direction: <xsl:value-of	select="."/>
 														</xsl:for-each>
-														<xsl:for-each select="bearrefm">
-												Bearing_Reference_Meridian: <xsl:value-of
-												select="."/>
+														<xsl:for-each select="bearrefm"> Bearing_Reference_Meridian: <xsl:value-of select="."/>
 														</xsl:for-each>
 													</xsl:for-each>
 													<xsl:for-each select="plandu">
@@ -2258,61 +2214,43 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 												</xsl:for-each>
 											</xsl:for-each>
 											<xsl:for-each select="local"> Local: <xsl:for-each
-												select="localdes"> Local_Description:
-													<xsl:value-of select="."/>
+												select="localdes">  Local_Description:<xsl:value-of select="."/>
 												</xsl:for-each>
-												<xsl:for-each select="localgeo">
-												Local_Georeference_Information: <xsl:value-of
-												select="."/>
+												<xsl:for-each select="localgeo">  Local_Georeference_Information: <xsl:value-of	select="."/>
 												</xsl:for-each>
 											</xsl:for-each>
 											<xsl:for-each select="geodetic"> Geodetic_Model:
-												<xsl:for-each select="horizdn">
-												Horizontal_Datum_Name: <xsl:value-of select="."/>
+												<xsl:for-each select="horizdn">	Horizontal_Datum_Name: <xsl:value-of select="."/>
 												</xsl:for-each>
-												<xsl:for-each select="ellips"> Ellipsoid_Name:
-													<xsl:value-of select="."/>
+												<xsl:for-each select="ellips"> Ellipsoid_Name:	<xsl:value-of select="."/>
 												</xsl:for-each>
-												<xsl:for-each select="semiaxis"> Semi-major_Axis:
-													<xsl:value-of select="."/>
+												<xsl:for-each select="semiaxis"> Semi-major_Axis: <xsl:value-of select="."/>
 												</xsl:for-each>
-												<xsl:for-each select="denflat">
-												Denominator_of_Flattening_Ratio: <xsl:value-of
-												select="."/>
+												<xsl:for-each select="denflat">	Denominator_of_Flattening_Ratio: <xsl:value-of select="."/>
 												</xsl:for-each>
 											</xsl:for-each>
 										</xsl:for-each>
 										<xsl:for-each select="vertdef">
 											Vertical_Coordinate_System_Definition: <xsl:for-each
 												select="altsys"> Altitude_System_Definition:
-												<xsl:for-each select="altdatum">
-												Altitude_Datum_Name: <xsl:value-of select="."/>
+												<xsl:for-each select="altdatum"> Altitude_Datum_Name: <xsl:value-of select="."/>
 												</xsl:for-each>
-												<xsl:for-each select="altres"> Altitude_Resolution:
-													<xsl:value-of select="."/>
+												<xsl:for-each select="altres"> Altitude_Resolution:	<xsl:value-of select="."/>
 												</xsl:for-each>
-												<xsl:for-each select="altunits">
-												Altitude_Distance_Units: <xsl:value-of select="."
-												/>
+												<xsl:for-each select="altunits"> Altitude_Distance_Units: <xsl:value-of select="."/>
 												</xsl:for-each>
-												<xsl:for-each select="altenc">
-												Altitude_Encoding_Method: <xsl:value-of select="."
-												/>
+												<xsl:for-each select="altenc"> Altitude_Encoding_Method: <xsl:value-of select="."/>
 												</xsl:for-each>
 											</xsl:for-each>
 											<xsl:for-each select="depthsys">
-												Depth_System_Definition: <xsl:for-each
-												select="depthdn"> Depth_Datum_Name: <xsl:value-of
-												select="."/>
+												Depth_System_Definition: 
+												<xsl:for-each select="depthdn"> Depth_Datum_Name: <xsl:value-of select="."/>
 												</xsl:for-each>
-												<xsl:for-each select="depthres"> Depth_Resolution:
-													<xsl:value-of select="."/>
+												<xsl:for-each select="depthres"> Depth_Resolution: <xsl:value-of select="."/>
 												</xsl:for-each>
-												<xsl:for-each select="depthdu">
-												Depth_Distance_Units: <xsl:value-of select="."/>
+												<xsl:for-each select="depthdu">	Depth_Distance_Units: <xsl:value-of select="."/>
 												</xsl:for-each>
-												<xsl:for-each select="depthem">
-												Depth_Encoding_Method: <xsl:value-of select="."/>
+												<xsl:for-each select="depthem">	Depth_Encoding_Method: <xsl:value-of select="."/>
 												</xsl:for-each>
 											</xsl:for-each>
 										</xsl:for-each>
@@ -2324,19 +2262,16 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 										<xsl:for-each	select="detailed"> 
 											Detailed_Description: 
 												<xsl:for-each select="enttyp"> Entity_Type: 
-													<xsl:for-each select="enttypl"> Entity_Label: 
-														<xsl:value-of select="."/>
+													<xsl:for-each select="enttypl"> Entity_Label: <xsl:value-of select="."/>
 													</xsl:for-each>
-													<xsl:for-each select="enttypd"> Entity_Definition:
-														<xsl:value-of select="."/>
+													<xsl:for-each select="enttypd"> Entity_Definition: <xsl:value-of select="."/>
 													</xsl:for-each>
-													<xsl:for-each select="enttypds"> Definition_Source:
-														<xsl:value-of select="."/>
+													<xsl:for-each select="enttypds"> Definition_Source:	<xsl:value-of select="."/>
 													</xsl:for-each>
 												</xsl:for-each>
-												<xsl:for-each select="attr"> Attribute: 
-													<xsl:for-each select="attrlabl"> Attribute_Label: 
-														<xsl:value-of select="."/>
+												<xsl:for-each select="attr">
+													Attribute: 
+													<xsl:for-each select="attrlabl"> Attribute_Label: <xsl:value-of select="."/>
 													</xsl:for-each>
 													<xsl:for-each select="attrdef">
 														Attribute_Definition: <xsl:value-of select="."/>
@@ -2384,8 +2319,7 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 																Codeset_Source:	<xsl:value-of select="."/>
 															</xsl:for-each>
 														</xsl:for-each>
-														<xsl:for-each select="udom">
-															Unrepresentable_Domain: <xsl:value-of select="."/>
+														<xsl:for-each select="udom"> Unrepresentable_Domain: <xsl:value-of select="."/>
 														</xsl:for-each>
 													</xsl:for-each>
 													<xsl:for-each select="begdatea">
@@ -2624,8 +2558,9 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 	<!-- original keyword handler seems much more complicated than necessary. replace with this -->
 							<xsl:for-each select="//keywords/*">
 								<xsl:variable name="keywordtype">
-									<xsl:choose>
-										<xsl:when test="theme">
+									<xsl:value-of select="local-name()"/>
+									<!--<xsl:choose>
+										<xsl:when test="local-name()='theme'">
 											<xsl:value-of select="string('theme')"/>
 										</xsl:when>
 										<xsl:when test="place">
@@ -2637,7 +2572,7 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 										<xsl:when test="temporal">
 											<xsl:value-of select="string('temporal')"/>
 										</xsl:when>
-									</xsl:choose>
+									</xsl:choose>-->
 								</xsl:variable>
 								
 								<gmd:descriptiveKeywords>
@@ -3445,34 +3380,32 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 					<xsl:for-each select="$var_metadataRoot/distinfo/stdorder/digform">
 						<xsl:variable name="var1090_digform" select="."/>
 						<!-- distribution format -->
+						<xsl:if test="digtinfo/formname or digtinfo/formvern or digtinfo/formspec or digtinfo/filedec">
 						<gmd:distributionFormat>
 							<gmd:MD_Format>
 								<gmd:name>
-									<gco:CharacterString>
-										<xsl:value-of
-											select="normalize-space(string(digtinfo/formname))"
-										/>
-									</gco:CharacterString>
+								<xsl:choose>
+									<xsl:when test="digtinfo/formname">
+										<gco:CharacterString>
+											<xsl:value-of select="normalize-space(string(digtinfo/formname))"/>
+										</gco:CharacterString>
+									</xsl:when>
+									<xsl:otherwise>
+										<xsl:attribute name="gco:nilReason">missing</xsl:attribute>
+									</xsl:otherwise>
+								</xsl:choose>
 								</gmd:name>
 								<gmd:version>
-									
-										<xsl:choose>
-											<xsl:when test="$var1090_digform/digtinfo/formvern">
-												<xsl:for-each select="digtinfo/formvern">
-													<xsl:if	test="not(contains(string(.),'unknown'))">
-														<gco:CharacterString>
-														<xsl:value-of select="string(.)"/>
-														</gco:CharacterString>
-													</xsl:if>	
-												</xsl:for-each>
-											</xsl:when>
-											<xsl:otherwise>
-												<xsl:attribute name="gco:nilReason">
-													<xsl:value-of select="string('unknown')"/>
-												</xsl:attribute>
-											</xsl:otherwise>
-										</xsl:choose>
-
+									<xsl:choose>
+										<xsl:when test="digtinfo/formvern">
+											<gco:CharacterString>
+												<xsl:value-of select="normalize-space(string(digtinfo/formvern))"/>
+											</gco:CharacterString>
+										</xsl:when>
+										<xsl:otherwise>
+											<xsl:attribute name="gco:nilReason">missing</xsl:attribute>
+										</xsl:otherwise>
+									</xsl:choose>
 								</gmd:version>
 								<xsl:for-each select="digtinfo/formspec">
 									<gmd:specification>
@@ -3491,6 +3424,7 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 								</xsl:for-each>
 							</gmd:MD_Format>
 						</gmd:distributionFormat>
+						</xsl:if>
 					</xsl:for-each>
 					<xsl:for-each select="$var_metadataRoot/distinfo">
 						<xsl:variable name="var1113_distinfo" select="."/>
