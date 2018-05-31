@@ -528,6 +528,8 @@ SMR 2018-05-30 massive revision to adapt for use with xslt 1.0 so php and python
 	<!-- *********************************************************** -->
 	<!-- citation template -->
 	<xsl:template match="citeinfo">
+		<xsl:choose>
+			<xsl:when test="title and string-length(normalize-space(string(title)))>0">
 			<gmd:title>
 				<xsl:for-each select="title">
 					<gco:CharacterString>
@@ -688,7 +690,11 @@ SMR 2018-05-30 massive revision to adapt for use with xslt 1.0 so php and python
 					</gco:CharacterString>
 				</gmd:otherCitationDetails>
 			</xsl:for-each>
-		
+		</xsl:when
+			<xsl:otherwise>
+				<xsl:attribute name="gco:nilReason">missing</xsl:attribute>
+			</xsl:otherwise>
+		</xsl:choose>
 	</xsl:template>
 	
 
@@ -1887,9 +1893,10 @@ SMR 2018-05-30 massive revision to adapt for use with xslt 1.0 so php and python
 							<xsl:for-each select="vpfinfo">
 								<xsl:variable name="var_vpfType">
 									<xsl:call-template name="vmf:geometryType2">
-										<xsl:with-param name="input" select="translate(normalize-space(string(.)), $smallcase, $uppercase)"/>
+										<xsl:with-param name="input" select="translate(normalize-space(string(vpftype)), $smallcase, $uppercase)"/>
 									</xsl:call-template>
 								</xsl:variable>
+								
 								<gmd:geometricObjects>
 									<gmd:MD_GeometricObjects>
 										<gmd:geometricObjectType>
@@ -1900,14 +1907,16 @@ SMR 2018-05-30 massive revision to adapt for use with xslt 1.0 so php and python
 												<xsl:attribute name="codeListValue">
 													<xsl:value-of select="$var_vpfType"/>
 												</xsl:attribute>
-													<xsl:value-of select="normalize-space(string(vpfinfo))"/>
+													<xsl:value-of select="normalize-space(string(vpftype))"/>
 											</gmd:MD_GeometricObjectTypeCode>
 										</gmd:geometricObjectType>
+										<xsl:if test="ptvctcnt and string-length(string(ptvctcnt))>0">
 										<gmd:geometricObjectCount>
 											<gco:Integer>
 												<xsl:value-of select="ptvctcnt"/>
 											</gco:Integer>
 										</gmd:geometricObjectCount>
+										</xsl:if>
 									</gmd:MD_GeometricObjects>
 								</gmd:geometricObjects>
 							</xsl:for-each> <!-- vpfinfo -->
@@ -1938,7 +1947,7 @@ SMR 2018-05-30 massive revision to adapt for use with xslt 1.0 so php and python
 											</xsl:otherwise>
 										</xsl:choose>
 									</gmd:geometricObjectType>
-									<xsl:if test="ptvctcnt">
+									<xsl:if test="ptvctcnt and string-length(string(ptvctcnt))>0">
 									<gmd:geometricObjectCount>
 										<gco:Integer>
 											<xsl:value-of select="string(ptvctcnt)"/>
@@ -1986,20 +1995,17 @@ addresses, linear reference systems, and River Reach codes. -->
 				van der Grinten -->
 
 			<!-- metadata extensions FGDC metainfo/metextns/onlink here  -->
+			<xsl:for-each select="//metextns">
 			<gmd:metadataExtensionInfo>
 				<gmd:MD_MetadataExtensionInformation>
 					<gmd:extensionOnLineResource>
 						<gmd:CI_OnlineResource>
 							<gmd:linkage>
 								<gmd:URL>
-									<xsl:variable name="CIlinkURL">
-										<xsl:value-of select="count(/metadata/metainfo/metextns[1]/onlink)"/>
-									</xsl:variable>
-									<xsl:for-each select="/metadata/metainfo/metextns[1]/onlink">
-										<xsl:value-of
-											select="normalize-space(string(.))"/>
-										<xsl:if test="($CIlinkURL > 1)">
-											<xsl:value-of select="string(' ')"/>
+									<xsl:for-each select="onlink">
+										<xsl:value-of select="normalize-space(string(.))"/>
+										<xsl:if test="position() != last()">
+											<xsl:text>; </xsl:text>
 										</xsl:if>
 									</xsl:for-each>
 								</gmd:URL>
@@ -2015,7 +2021,9 @@ addresses, linear reference systems, and River Reach codes. -->
 					</gmd:extensionOnLineResource>
 				</gmd:MD_MetadataExtensionInformation>
 			</gmd:metadataExtensionInfo>
-			<!-- FGDC id metadata/idinfo goes into MD_identification -->
+			</xsl:for-each>
+				
+				<!-- FGDC id metadata/idinfo goes into MD_identification -->
 			<xsl:for-each select="$var_metadataRoot">
 				<xsl:for-each select="idinfo">
 					<xsl:variable name="var_idinfoSourceNode" select="."/>
@@ -2572,7 +2580,7 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 										</xsl:when>
 									</xsl:choose>-->
 								</xsl:variable>
-								
+								<xsl:if test="./*[contains(local-name(), 'key')]">
 								<gmd:descriptiveKeywords>
 									<gmd:MD_Keywords>
 										<xsl:for-each select="./*[contains(local-name(), 'key')]">
@@ -2609,6 +2617,7 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 										</gmd:thesaurusName>
 									</gmd:MD_Keywords>
 								</gmd:descriptiveKeywords>
+								</xsl:if>
 							</xsl:for-each>					
 							
 <!-- ***************************************************************************** -->
@@ -2829,11 +2838,9 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 							<xsl:for-each select="keywords/theme">
 								<xsl:for-each select="themekey">
 									<xsl:if
-										test="contains('biota boundaries climatologyMeteorologyAtmosphere 
-										economy elevation environment farming geoscientificInformation 
-										health imageryBaseMapsEarthCover inlandWaters intelligenceMilitary 
-										location oceans planningCadastre society structure transportation 
-										utilitiesCommunication', normalize-space(string(.)))">
+										test="string-length(normalize-space(string(.)))>0 and
+										contains('farming, biota, boundaries, climatologyMeteorologyAtmosphere, economy, elevation, environment, geoscientificInformation, health, imageryBaseMapsEarthCover, intelligenceMilitary, inlandWaters, location, oceans, planningCadastre, society, structure, transportation, utilitiesCommunication, ', 
+										concat(normalize-space(string(.)),', '))">
 										<!-- accumulate topic elements in hasISOtopic variable -->
 										<gmd:topicCategory>
 											<gmd:MD_TopicCategoryCode>
@@ -4311,12 +4318,12 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 									</xsl:variable>
 									<xsl:choose>
 										<xsl:when test="starts-with(string($dateFormat), 'nil')">
-											<xsl:attribute name="indeterminatePosition">
+											<xsl:attribute name="gco:nilReason">
 												<xsl:value-of select="'unknown'"/>
 											</xsl:attribute>
-											<xsl:attribute name="calendarEraName">
+											<!--<xsl:attribute name="calendarEraName">
 												<xsl:value-of select="concat(string('Cannot interpret datestring: '), string(.))"/>
-											</xsl:attribute>
+											</xsl:attribute>-->
 										</xsl:when>
 										<xsl:otherwise>
 											<gco:DateTime>
@@ -4326,7 +4333,7 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 									</xsl:choose>
 								</xsl:when>
 								<xsl:otherwise>
-									<xsl:attribute name="indeterminatePosition">unknown</xsl:attribute>
+									<xsl:attribute name="gco:nilReason">unknown</xsl:attribute>
 								</xsl:otherwise>
 							</xsl:choose>	
 						</gmd:dateOfNextUpdate>
