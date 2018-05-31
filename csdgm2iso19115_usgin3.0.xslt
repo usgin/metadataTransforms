@@ -3947,10 +3947,13 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 														<!-- csdgm puts a srcinfo collection of source citations in the root of the lineage section,
 														each with an abbreviation used as a foreign key to reference the source in the srcused for the
 														processing steps. The srccitea -->
+														<xsl:variable name="thissource">
+															<xsl:value-of select="normalize-space(string(.))"/>
+														</xsl:variable>
 														<xsl:choose>
-														<xsl:when test="//srccitea[text()=string(.)]/preceding-sibling::srccite/citeinfo">
+														<xsl:when test="//srccitea[.=$thissource]/preceding-sibling::srccite/citeinfo">
 															<!-- is there a matching srccitea -->
-															<xsl:for-each select="//srccitea[text()=string(.)]/preceding-sibling::srccite/citeinfo">
+															<xsl:for-each select="//srccitea[.=$thissource]/preceding-sibling::srccite/citeinfo">
 																<!-- possible multiple matches -->
 																<gmd:source>
 																	<gmd:LI_Source>
@@ -3971,7 +3974,9 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 																			<gmd:sourceCitation>
 																				<gmd:CI_Citation>
 																					<gmd:title>
+																						<gco:CharacterString>
 																						<xsl:value-of select="normalize-space(string(.))"/>
+																						</gco:CharacterString>
 																					</gmd:title>
 																					<gmd:date gco:nilReason="missing"/>
 																				</gmd:CI_Citation>
