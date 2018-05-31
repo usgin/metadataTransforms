@@ -593,225 +593,232 @@
         dateCopyrighted  - publication
         dateSubmitted - creation        
         -->
-        <xsl:for-each select="$dc-dates">
-            <xsl:if test="normalize-space(string(.)) != ''">
-                <xsl:variable name="inputDate" select="normalize-space(string(.))"/>
-                <!-- YYYY-MM-DDTHH:MM:SS -->
-                <xsl:variable name="castableAsISODateTime"
-                    select="
-                        (substring($inputDate, 5, 1) = '-') and
-                        (substring($inputDate, 8, 1) = '-') and
-                        (substring($inputDate, 11, 1) = 'T') and
-                        (substring($inputDate, 14, 1) = ':') and
-                        (substring($inputDate, 17, 1) = ':')"/>
-                <!-- YYYY-MM-DD -->
-                <xsl:variable name="castableAsISODate"
-                    select="
-                        (substring($inputDate, 5, 1) = '-') and
-                        (substring($inputDate, 8, 1) = '-') and
-                        string-length($inputDate) = 10"/>
-                <!-- M/D/YYYY, MM/DD/YYYY, MM/YYYY, YYYY -->
-                <xsl:variable name="dayVal">
-                    <xsl:choose>
-                        <xsl:when test="string-length($inputDate) > 7">
-                            <xsl:value-of select="substring-before($inputDate, '/')"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:value-of select="string('')"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:variable>
-                <xsl:variable name="monthVal">
-                    <!--select="substring-before(substring-after($inputDate,'/'),'/')"-->
-                    <xsl:choose>
-                        <xsl:when test="string-length(normalize-space($inputDate)) > 7">
-                            <xsl:value-of
-                                select="substring-before(substring-after($inputDate, '/'), '/')"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:value-of select="substring-before($inputDate, '/')"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:variable>
-                <xsl:variable name="yearVal">
-                    <!--select="substring-after(substring-after($inputDate,'/'),'/')"-->
-                    <xsl:choose>
-                        <xsl:when test="string-length(normalize-space($inputDate)) > 7">
-                            <xsl:value-of
-                                select="substring(substring-after(substring-after($inputDate, '/'), '/'), 1, 4)"
-                            />
-                        </xsl:when>
-                        <xsl:when test="string-length(normalize-space($inputDate)) = 4">
-                            <xsl:value-of select="normalize-space($inputDate)"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:value-of select="substring(substring-after($inputDate, '/'), 1, 4)"
-                            />
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:variable>
-                <xsl:variable name="castableAsMDYDate" select="number($yearVal)"/>
-                <!-- YYYYMMDD -->
-                <xsl:variable name="castableAsFDate"
-                    select="string-length($inputDate) &lt;= 8 and number($inputDate)"/>
-                <gmd:date>
-
-                    <xsl:if
-                        test="
-                            not($castableAsISODateTime or
-                            $castableAsISODate or
-                            $castableAsFDate or
-                            $castableAsMDYDate)">
-                        <!-- date is in format we don't have parser for -->
-                        <!-- insert the date string in the xlink title so its in the result doc somewhere... -->
-                        <xsl:attribute name="xlink:title">
-                            <xsl:value-of select="normalize-space(string(.))"/>
-                        </xsl:attribute>
-                    </xsl:if>
-                    <gmd:CI_Date>
-                        <gmd:date>
+        <xsl:choose>
+            <xsl:when test="$dc-dates">
+                <xsl:for-each select="$dc-dates">
+                    <xsl:if test="normalize-space(string(.)) != ''">
+                        <xsl:variable name="inputDate" select="normalize-space(string(.))"/>
+                        <!-- YYYY-MM-DDTHH:MM:SS -->
+                        <xsl:variable name="castableAsISODateTime"
+                            select="
+                                (substring($inputDate, 5, 1) = '-') and
+                                (substring($inputDate, 8, 1) = '-') and
+                                (substring($inputDate, 11, 1) = 'T') and
+                                (substring($inputDate, 14, 1) = ':') and
+                                (substring($inputDate, 17, 1) = ':')"/>
+                        <!-- YYYY-MM-DD -->
+                        <xsl:variable name="castableAsISODate"
+                            select="
+                                (substring($inputDate, 5, 1) = '-') and
+                                (substring($inputDate, 8, 1) = '-') and
+                                string-length($inputDate) = 10"/>
+                        <!-- M/D/YYYY, MM/DD/YYYY, MM/YYYY, YYYY -->
+                        <xsl:variable name="dayVal">
                             <xsl:choose>
-                                <xsl:when
-                                    test="
-                                        not($castableAsISODateTime or
-                                        $castableAsISODate or
-                                        $castableAsFDate or
-                                        $castableAsMDYDate)">
-                                    <!-- date is in format we don't have parser for -->
-                                    <xsl:attribute name="gco:nilReason">
-                                        <xsl:value-of select="string('unknown')"/>
-                                    </xsl:attribute>
-
-                                </xsl:when>
-                                <xsl:when test="$castableAsISODateTime">
-                                    <gco:DateTime>
-                                        <xsl:value-of select="normalize-space($inputDate)"/>
-                                    </gco:DateTime>
-                                </xsl:when>
-                                <xsl:when test="$castableAsISODate">
-                                    <gco:DateTime>
-                                        <xsl:value-of
-                                            select="concat(normalize-space($inputDate), 'T12:00:00')"
-                                        />
-                                    </gco:DateTime>
-                                </xsl:when>
-                                <xsl:when test="$castableAsFDate">
-                                    <gco:DateTime>
-                                        <xsl:choose>
-                                            <xsl:when
-                                                test="string-length(normalize-space(string($inputDate))) = 8">
-                                                <xsl:value-of
-                                                  select="
-                                                        concat(substring(normalize-space(string($inputDate)), 0, 5), '-',
-                                                        substring(normalize-space(string($inputDate)), 5, 2), '-',
-                                                        substring(normalize-space(string($inputDate)), 7, 2),
-                                                        'T12:00:00')"
-                                                />
-                                            </xsl:when>
-                                            <xsl:when
-                                                test="string-length(normalize-space(string($inputDate))) = 6">
-                                                <xsl:value-of
-                                                  select="
-                                                        concat(substring(normalize-space(string($inputDate)), 0, 5), '-',
-                                                        substring(normalize-space(string($inputDate)), 5, 2), '-01T12:00:00')"
-                                                />
-                                            </xsl:when>
-                                            <xsl:when
-                                                test="string-length(normalize-space(string($inputDate))) = 4">
-                                                <xsl:value-of
-                                                  select="concat(substring(normalize-space(string($inputDate)), 0, 5), '-01-01T12:00:00')"
-                                                />
-                                            </xsl:when>
-                                        </xsl:choose>
-                                    </gco:DateTime>
-                                </xsl:when>
-                                <xsl:when test="$castableAsMDYDate">
-                                    <gco:DateTime>
-                                        <xsl:choose>
-                                            <xsl:when
-                                                test="number($dayVal) and number($monthVal) and number($yearVal)">
-                                                <xsl:value-of
-                                                  select="
-                                                        concat($yearVal, '-',
-                                                        format-number($monthVal, '00'), '-', format-number($dayVal, '00'), 'T12:00:00')"
-                                                />
-                                            </xsl:when>
-                                            <xsl:when test="number($monthVal) and number($yearVal)">
-                                                <xsl:value-of
-                                                  select="
-                                                        concat($yearVal, '-',
-                                                        format-number($monthVal, '00'), '-', '01T12:00:00')"
-                                                />
-                                            </xsl:when>
-                                            <xsl:when test="number($yearVal)">
-                                                <xsl:value-of
-                                                  select="
-                                                        concat($yearVal, '-',
-                                                        '01-01T12:00:00')"
-                                                />
-                                            </xsl:when>
-                                        </xsl:choose>
-                                    </gco:DateTime>
-                                </xsl:when>
-                                <!-- there is no otherwise, should have been caught before getting into this choose -->
-                            </xsl:choose>
-
-                        </gmd:date>
-                        <gmd:dateType>
-                            <xsl:choose>
-                                <xsl:when test="local-name() = 'created'">
-                                    <gmd:CI_DateTypeCode
-                                        codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
-                                        codeListValue="creation">created</gmd:CI_DateTypeCode>
-                                </xsl:when>
-                                <xsl:when test="local-name() = 'valid'">
-                                    <gmd:CI_DateTypeCode
-                                        codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
-                                        codeListValue="publication">valid</gmd:CI_DateTypeCode>
-                                </xsl:when>
-                                <xsl:when test="local-name() = 'available'">
-                                    <gmd:CI_DateTypeCode
-                                        codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
-                                        codeListValue="publication">available</gmd:CI_DateTypeCode>
-                                </xsl:when>
-                                <xsl:when test="local-name() = 'issued'">
-                                    <gmd:CI_DateTypeCode
-                                        codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
-                                        codeListValue="publication">issued</gmd:CI_DateTypeCode>
-                                </xsl:when>
-                                <xsl:when test="local-name() = 'modified'">
-                                    <gmd:CI_DateTypeCode
-                                        codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
-                                        codeListValue="revision">modified</gmd:CI_DateTypeCode>
-                                </xsl:when>
-                                <xsl:when test="local-name() = 'dateAccepted'">
-                                    <gmd:CI_DateTypeCode
-                                        codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
-                                        codeListValue="publication"
-                                        >dateAccepted</gmd:CI_DateTypeCode>
-                                </xsl:when>
-                                <xsl:when test="local-name() = 'dateCopyrighted'">
-                                    <gmd:CI_DateTypeCode
-                                        codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
-                                        codeListValue="publication"
-                                        >dateCopyrighted</gmd:CI_DateTypeCode>
-                                </xsl:when>
-                                <xsl:when test="local-name() = 'dateSubmitted'">
-                                    <gmd:CI_DateTypeCode
-                                        codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
-                                        codeListValue="creation">dateSubmitted</gmd:CI_DateTypeCode>
+                                <xsl:when test="string-length($inputDate) > 7">
+                                    <xsl:value-of select="substring-before($inputDate, '/')"/>
                                 </xsl:when>
                                 <xsl:otherwise>
-                                    <gmd:CI_DateTypeCode
-                                        codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
-                                        codeListValue="creation">creation</gmd:CI_DateTypeCode>
+                                    <xsl:value-of select="string('')"/>
                                 </xsl:otherwise>
                             </xsl:choose>
-                        </gmd:dateType>
-                    </gmd:CI_Date>
-                </gmd:date>
-            </xsl:if>
-        </xsl:for-each>
+                        </xsl:variable>
+                        <xsl:variable name="monthVal">
+                            <!--select="substring-before(substring-after($inputDate,'/'),'/')"-->
+                            <xsl:choose>
+                                <xsl:when test="string-length(normalize-space($inputDate)) > 7">
+                                    <xsl:value-of
+                                        select="substring-before(substring-after($inputDate, '/'), '/')"/>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:value-of select="substring-before($inputDate, '/')"/>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:variable>
+                        <xsl:variable name="yearVal">
+                            <!--select="substring-after(substring-after($inputDate,'/'),'/')"-->
+                            <xsl:choose>
+                                <xsl:when test="string-length(normalize-space($inputDate)) > 7">
+                                    <xsl:value-of
+                                        select="substring(substring-after(substring-after($inputDate, '/'), '/'), 1, 4)"
+                                    />
+                                </xsl:when>
+                                <xsl:when test="string-length(normalize-space($inputDate)) = 4">
+                                    <xsl:value-of select="normalize-space($inputDate)"/>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:value-of select="substring(substring-after($inputDate, '/'), 1, 4)"
+                                    />
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:variable>
+                        <xsl:variable name="castableAsMDYDate" select="number($yearVal)"/>
+                        <!-- YYYYMMDD -->
+                        <xsl:variable name="castableAsFDate"
+                            select="string-length($inputDate) &lt;= 8 and number($inputDate)"/>
+                        <gmd:date>
+        
+                            <xsl:if
+                                test="
+                                    not($castableAsISODateTime or
+                                    $castableAsISODate or
+                                    $castableAsFDate or
+                                    $castableAsMDYDate)">
+                                <!-- date is in format we don't have parser for -->
+                                <!-- insert the date string in the xlink title so its in the result doc somewhere... -->
+                                <xsl:attribute name="xlink:title">
+                                    <xsl:value-of select="normalize-space(string(.))"/>
+                                </xsl:attribute>
+                            </xsl:if>
+                            <gmd:CI_Date>
+                                <gmd:date>
+                                    <xsl:choose>
+                                        <xsl:when
+                                            test="
+                                                not($castableAsISODateTime or
+                                                $castableAsISODate or
+                                                $castableAsFDate or
+                                                $castableAsMDYDate)">
+                                            <!-- date is in format we don't have parser for -->
+                                            <xsl:attribute name="gco:nilReason">
+                                                <xsl:value-of select="string('unknown')"/>
+                                            </xsl:attribute>
+        
+                                        </xsl:when>
+                                        <xsl:when test="$castableAsISODateTime">
+                                            <gco:DateTime>
+                                                <xsl:value-of select="normalize-space($inputDate)"/>
+                                            </gco:DateTime>
+                                        </xsl:when>
+                                        <xsl:when test="$castableAsISODate">
+                                            <gco:DateTime>
+                                                <xsl:value-of
+                                                    select="concat(normalize-space($inputDate), 'T12:00:00')"
+                                                />
+                                            </gco:DateTime>
+                                        </xsl:when>
+                                        <xsl:when test="$castableAsFDate">
+                                            <gco:DateTime>
+                                                <xsl:choose>
+                                                    <xsl:when
+                                                        test="string-length(normalize-space(string($inputDate))) = 8">
+                                                        <xsl:value-of
+                                                          select="
+                                                                concat(substring(normalize-space(string($inputDate)), 0, 5), '-',
+                                                                substring(normalize-space(string($inputDate)), 5, 2), '-',
+                                                                substring(normalize-space(string($inputDate)), 7, 2),
+                                                                'T12:00:00')"
+                                                        />
+                                                    </xsl:when>
+                                                    <xsl:when
+                                                        test="string-length(normalize-space(string($inputDate))) = 6">
+                                                        <xsl:value-of
+                                                          select="
+                                                                concat(substring(normalize-space(string($inputDate)), 0, 5), '-',
+                                                                substring(normalize-space(string($inputDate)), 5, 2), '-01T12:00:00')"
+                                                        />
+                                                    </xsl:when>
+                                                    <xsl:when
+                                                        test="string-length(normalize-space(string($inputDate))) = 4">
+                                                        <xsl:value-of
+                                                          select="concat(substring(normalize-space(string($inputDate)), 0, 5), '-01-01T12:00:00')"
+                                                        />
+                                                    </xsl:when>
+                                                </xsl:choose>
+                                            </gco:DateTime>
+                                        </xsl:when>
+                                        <xsl:when test="$castableAsMDYDate">
+                                            <gco:DateTime>
+                                                <xsl:choose>
+                                                    <xsl:when
+                                                        test="number($dayVal) and number($monthVal) and number($yearVal)">
+                                                        <xsl:value-of
+                                                          select="
+                                                                concat($yearVal, '-',
+                                                                format-number($monthVal, '00'), '-', format-number($dayVal, '00'), 'T12:00:00')"
+                                                        />
+                                                    </xsl:when>
+                                                    <xsl:when test="number($monthVal) and number($yearVal)">
+                                                        <xsl:value-of
+                                                          select="
+                                                                concat($yearVal, '-',
+                                                                format-number($monthVal, '00'), '-', '01T12:00:00')"
+                                                        />
+                                                    </xsl:when>
+                                                    <xsl:when test="number($yearVal)">
+                                                        <xsl:value-of
+                                                          select="
+                                                                concat($yearVal, '-',
+                                                                '01-01T12:00:00')"
+                                                        />
+                                                    </xsl:when>
+                                                </xsl:choose>
+                                            </gco:DateTime>
+                                        </xsl:when>
+                                        <!-- there is no otherwise, should have been caught before getting into this choose -->
+                                    </xsl:choose>
+        
+                                </gmd:date>
+                                <gmd:dateType>
+                                    <xsl:choose>
+                                        <xsl:when test="local-name() = 'created'">
+                                            <gmd:CI_DateTypeCode
+                                                codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
+                                                codeListValue="creation">created</gmd:CI_DateTypeCode>
+                                        </xsl:when>
+                                        <xsl:when test="local-name() = 'valid'">
+                                            <gmd:CI_DateTypeCode
+                                                codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
+                                                codeListValue="publication">valid</gmd:CI_DateTypeCode>
+                                        </xsl:when>
+                                        <xsl:when test="local-name() = 'available'">
+                                            <gmd:CI_DateTypeCode
+                                                codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
+                                                codeListValue="publication">available</gmd:CI_DateTypeCode>
+                                        </xsl:when>
+                                        <xsl:when test="local-name() = 'issued'">
+                                            <gmd:CI_DateTypeCode
+                                                codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
+                                                codeListValue="publication">issued</gmd:CI_DateTypeCode>
+                                        </xsl:when>
+                                        <xsl:when test="local-name() = 'modified'">
+                                            <gmd:CI_DateTypeCode
+                                                codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
+                                                codeListValue="revision">modified</gmd:CI_DateTypeCode>
+                                        </xsl:when>
+                                        <xsl:when test="local-name() = 'dateAccepted'">
+                                            <gmd:CI_DateTypeCode
+                                                codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
+                                                codeListValue="publication"
+                                                >dateAccepted</gmd:CI_DateTypeCode>
+                                        </xsl:when>
+                                        <xsl:when test="local-name() = 'dateCopyrighted'">
+                                            <gmd:CI_DateTypeCode
+                                                codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
+                                                codeListValue="publication"
+                                                >dateCopyrighted</gmd:CI_DateTypeCode>
+                                        </xsl:when>
+                                        <xsl:when test="local-name() = 'dateSubmitted'">
+                                            <gmd:CI_DateTypeCode
+                                                codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
+                                                codeListValue="creation">dateSubmitted</gmd:CI_DateTypeCode>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <gmd:CI_DateTypeCode
+                                                codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
+                                                codeListValue="creation">creation</gmd:CI_DateTypeCode>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </gmd:dateType>
+                            </gmd:CI_Date>
+                        </gmd:date>
+                    </xsl:if>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <gmd:date gco:nilReason="missing"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     <!-- convert dc authors -->
     <xsl:template name="creators">
