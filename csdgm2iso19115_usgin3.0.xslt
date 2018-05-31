@@ -690,7 +690,7 @@ SMR 2018-05-30 massive revision to adapt for use with xslt 1.0 so php and python
 					</gco:CharacterString>
 				</gmd:otherCitationDetails>
 			</xsl:for-each>
-		</xsl:when
+		</xsl:when>
 			<xsl:otherwise>
 				<xsl:attribute name="gco:nilReason">missing</xsl:attribute>
 			</xsl:otherwise>
