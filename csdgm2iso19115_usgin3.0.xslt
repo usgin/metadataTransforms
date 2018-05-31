@@ -692,7 +692,8 @@ SMR 2018-05-30 massive revision to adapt for use with xslt 1.0 so php and python
 			</xsl:for-each>
 		</xsl:when>
 			<xsl:otherwise>
-				<xsl:attribute name="gco:nilReason">missing</xsl:attribute>
+					<gmd:title gco:nilReason="missing"/>
+					<gmd:date gco:nilReason="missing"/>
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
@@ -1589,20 +1590,34 @@ SMR 2018-05-30 massive revision to adapt for use with xslt 1.0 so php and python
 					<xsl:value-of select="distinfo/resdesc"/>
 				</gco:CharacterString>
 			</gmd:hierarchyLevelName>
-			<gmd:contact>
-				<gmd:CI_ResponsibleParty>
-					<!-- scrape input cntinfo for person and org names that might be in one of 2 places -->
-					<xsl:apply-templates select="metainfo/metc/cntinfo"/>
-
-					<!-- role gets a fixed value; FGDC doesn't allow for different roles, so assume point of contact -->
-					<gmd:role>
-						<gmd:CI_RoleCode
-							codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode"
-							codeListValue="pointOfContact" codeSpace="007"
-							>pointOfContact</gmd:CI_RoleCode>
-					</gmd:role>
-				</gmd:CI_ResponsibleParty>
-			</gmd:contact>
+			
+			<!-- gmd:contact is mandatory in ISO19139 xml schema -->
+			<xsl:choose>
+				<xsl:when test="metainfo/metc/cntinfo">
+					<!-- technically only one cntinfo should be present, ISO allows multiple, and 
+					actual CSDGM instances don't necessarily follow the schema.-->
+					<xsl:for-each select="metainfo/metc/cntinfo">
+						<gmd:contact>
+							<gmd:CI_ResponsibleParty>
+								<!-- scrape input cntinfo for person and org names that might be in one of 2 places -->
+								<xsl:apply-templates select="."/>
+			
+								<!-- role gets a fixed value; FGDC doesn't allow for different roles, so assume point of contact -->
+								<gmd:role>
+									<gmd:CI_RoleCode
+										codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode"
+										codeListValue="pointOfContact" codeSpace="007"
+										>pointOfContact</gmd:CI_RoleCode>
+								</gmd:role>
+							</gmd:CI_ResponsibleParty>
+						</gmd:contact>
+					</xsl:for-each>
+				</xsl:when>
+				<xsl:otherwise>
+					<gmd:contact gco:nilReason="missing"/>
+				</xsl:otherwise>
+			</xsl:choose>
+			
 			<gmd:dateStamp>
 				<xsl:choose>
 					<xsl:when test="metainfo/metd">
@@ -2624,25 +2639,43 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 <!-- resource constraints section, distribution liability, access constraint, and use constraints get concatenated into a single gmd:useConstraint 
 								text blob -->
 							<xsl:variable name="var_distributionLiability_exists">
-								<xsl:if test="$var_metadataRoot/distinfo/distliab">
-									<xsl:value-of select="concat('Distribution Liability: ', concat($var_metadataRoot/distinfo/distliab, ' '))"
-									/>
+								<xsl:if test="//distliab">
+									<xsl:for-each select = "//distliab">
+										<xsl:if test="string-length(normalize-space(string(.)))>0">
+											<xsl:value-of select="normalize-space(string(.))"/>
+										</xsl:if>
+										<xsl:if test="position() != last()">
+											<xsl:text>; </xsl:text>
+										</xsl:if>
+									</xsl:for-each>
 								</xsl:if>
 							</xsl:variable>
 							<xsl:variable name="var_accessConstraints_exists">
-								<xsl:if test="accconst">
-									<xsl:value-of
-										select="concat('Access Constraints: ', concat($var_metadataRoot//idinfo/accconst, ' '))"
-									/>
+								<xsl:if test="//accconst">
+									<xsl:for-each select = "//accconst">
+										<xsl:if test="string-length(normalize-space(string(.)))>0">
+											<xsl:value-of select="normalize-space(string(.))"/>
+										</xsl:if>
+										<xsl:if test="position() != last()">
+											<xsl:text>; </xsl:text>
+										</xsl:if>
+									</xsl:for-each>
 								</xsl:if>
 							</xsl:variable>
+							
 							<xsl:variable name="var_useLimitation_exists">
-								<xsl:if test="useconst">
-									<xsl:value-of
-										select="concat('Use Limitation: ', concat($var_metadataRoot/idinfo/useconst, ' '))"
-									/>
+								<xsl:if test="//useconst">
+									<xsl:for-each select = "//useconst">
+										<xsl:if test="string-length(normalize-space(string(.)))>0">
+											<xsl:value-of select="normalize-space(string(.))"/>
+										</xsl:if>
+										<xsl:if test="position() != last()">
+											<xsl:text>; </xsl:text>
+										</xsl:if>
+									</xsl:for-each>
 								</xsl:if>
 							</xsl:variable>
+							
 							<xsl:if
 								test="$var_distributionLiability_exists or $var_accessConstraints_exists or $var_useLimitation_exists">
 								<gmd:resourceConstraints>
@@ -2668,7 +2701,9 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 										<gmd:otherConstraints>
 											<gco:CharacterString>
 												<xsl:value-of
-												select="normalize-space(concat($var_accessConstraints_exists, ' ', $var_useLimitation_exists, ' ', $var_distributionLiability_exists))"
+													select="normalize-space(concat('Access constraints: ', $var_accessConstraints_exists, 
+													'. Use Limitation: ', $var_useLimitation_exists, 
+													'.  Distribution Liability: ', $var_distributionLiability_exists))"
 												/>
 											</gco:CharacterString>
 										</gmd:otherConstraints>
@@ -3068,9 +3103,9 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 																					</xsl:attribute>
 																				</xsl:when>
 																				<xsl:otherwise>
-																					<gco:DateTime>
+																				
 																						<xsl:value-of select="$dateFormat"/>
-																					</gco:DateTime>
+																					
 																				</xsl:otherwise>
 																			</xsl:choose>
 																		</xsl:when>
@@ -3912,13 +3947,40 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 														<!-- csdgm puts a srcinfo collection of source citations in the root of the lineage section,
 														each with an abbreviation used as a foreign key to reference the source in the srcused for the
 														processing steps. The srccitea -->
-														<gmd:source>
-															<gmd:LI_Source>
-																<gmd:sourceCitation>
-																	<xsl:apply-templates select = "//srccitea[.=srcused]/preceding-sibling::srccite/citeinfo"/>
-																</gmd:sourceCitation>
-															</gmd:LI_Source>
-														</gmd:source>
+														<xsl:choose>
+														<xsl:when test="//srccitea[text()=string(.)]/preceding-sibling::srccite/citeinfo">
+															<!-- is there a matching srccitea -->
+															<xsl:for-each select="//srccitea[text()=string(.)]/preceding-sibling::srccite/citeinfo">
+																<!-- possible multiple matches -->
+																<gmd:source>
+																	<gmd:LI_Source>
+																		<gmd:sourceCitation>
+																			<gmd:CI_Citation>
+																			<xsl:apply-templates select = "."/>
+																			</gmd:CI_Citation>
+																		</gmd:sourceCitation>
+																	</gmd:LI_Source>
+																</gmd:source>
+															</xsl:for-each>
+														</xsl:when>
+															<xsl:otherwise>
+																<xsl:if test="string-length(normalize-space(string(.)))>0">
+																	<!-- is there actually any content in the srcused element -->
+																	<gmd:source>
+																		<gmd:LI_Source>
+																			<gmd:sourceCitation>
+																				<gmd:CI_Citation>
+																					<gmd:title>
+																						<xsl:value-of select="normalize-space(string(.))"/>
+																					</gmd:title>
+																					<gmd:date gco:nilReason="missing"/>
+																				</gmd:CI_Citation>
+																			</gmd:sourceCitation>
+																		</gmd:LI_Source>
+																	</gmd:source>
+																</xsl:if>
+															</xsl:otherwise>
+														</xsl:choose>
 													</xsl:for-each>
 												</gmd:LI_ProcessStep>
 											</gmd:processStep>
@@ -4010,7 +4072,6 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 																								<xsl:attribute name="indeterminatePosition">unknown</xsl:attribute>
 																							</xsl:otherwise>
 																						</xsl:choose>
-	
 																					</gml:timePosition>
 																				</gml:TimeInstant>
 																			</gmd:extent>
