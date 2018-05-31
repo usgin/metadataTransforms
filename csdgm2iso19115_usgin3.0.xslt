@@ -1926,11 +1926,23 @@ SMR 2018-05-30 massive revision to adapt for use with xslt 1.0 so php and python
 											</gmd:MD_GeometricObjectTypeCode>
 										</gmd:geometricObjectType>
 										<xsl:if test="ptvctcnt and string-length(string(ptvctcnt))>0">
-										<gmd:geometricObjectCount>
-											<gco:Integer>
-												<xsl:value-of select="ptvctcnt"/>
-											</gco:Integer>
-										</gmd:geometricObjectCount>
+											<xsl:choose>
+												<xsl:when test="number(ptvctcnt)=ptvctcnt">
+													<gmd:geometricObjectCount>
+														<gco:Integer>
+															<xsl:value-of select="ptvctcnt"/>
+														</gco:Integer>
+													</gmd:geometricObjectCount>
+												</xsl:when>
+												<xsl:otherwise>
+													<!-- kluge-- not valid nilReason values, but this will validate -->
+													<gmd:geometricObjectCount>
+														<xsl:attribute name="gco:nilReason">
+															<xsl:value-of select="normalize-space(string(ptvctcnt))"/>
+														</xsl:attribute>
+													</gmd:geometricObjectCount>
+												</xsl:otherwise>
+											</xsl:choose>
 										</xsl:if>
 									</gmd:MD_GeometricObjects>
 								</gmd:geometricObjects>
@@ -4025,11 +4037,13 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 															</gmd:MD_RepresentativeFraction>
 														</gmd:scaleDenominator>
 													</xsl:if>
+													<xsl:if test="srccite/citeinfo">
 													<gmd:sourceCitation>
 														<gmd:CI_Citation>
 															<xsl:apply-templates select="srccite/citeinfo"/>
 														</gmd:CI_Citation>
 													</gmd:sourceCitation>
+													</xsl:if>
 													<xsl:if test="srctime/timeinfo">
 														<gmd:sourceExtent>
 															<gmd:EX_Extent>
