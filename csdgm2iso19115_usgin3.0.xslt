@@ -1541,6 +1541,8 @@ SMR 2018-05-30 massive revision to adapt for use with xslt 1.0 so php and python
 	<!--  ***************** -->
 	<!-- Start actual output metadata record here, let's get down to business -->
 	<xsl:template match="metadata">
+		<xsl:if test="idinfo/citation and idinfo/descript"> <!-- do nothing if theres 
+		not a citation and description -->
 		<gmd:MD_Metadata>
 			<xsl:attribute name="xsi:schemaLocation">
 				<xsl:value-of
@@ -2066,6 +2068,8 @@ addresses, linear reference systems, and River Reach codes. -->
 			<xsl:for-each select="$var_metadataRoot">
 				<xsl:for-each select="idinfo">
 					<xsl:variable name="var_idinfoSourceNode" select="."/>
+					<xsl:if test="citation and descript">
+						<!-- don't process if there's no citation or description of resource -->
 					<gmd:identificationInfo>
 						<gmd:MD_DataIdentification>
 							<xsl:for-each select="citation">
@@ -3253,6 +3257,7 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 							</xsl:for-each>
 						</gmd:MD_DataIdentification>
 					</gmd:identificationInfo>
+					</xsl:if>
 				</xsl:for-each>
 			</xsl:for-each>
 			
@@ -4482,6 +4487,7 @@ An xsl template for displaying metadata in ArcInfo8 with the traditional FGDC lo
 				</gmd:MD_MaintenanceInformation>
 			</gmd:metadataMaintenance>
 		</gmd:MD_Metadata>
+		</xsl:if>
 	</xsl:template>
 	<!-- Map projection display handlers, this stuff gets put in the abstract -->
 	<!-- Map Projections -->
