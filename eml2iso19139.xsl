@@ -5,9 +5,18 @@ Stylesheet downloaded from https://www.ngdc.noaa.gov/metadata/published/xsl/Ecol
 no metadata.
 
 -->
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gmx="http://www.isotc211.org/2005/gmx"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:srv="http://www.isotc211.org/2005/srv" xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:gml="http://www.opengis.net/gml"
-	xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:date="http://exslt.org/dates-and-times" exclude-result-prefixes="date">
+<xsl:stylesheet version="1.0" 
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
+	xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" 
+	xmlns:gmd="http://www.isotc211.org/2005/gmd" 
+	xmlns:gmx="http://www.isotc211.org/2005/gmx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:srv="http://www.isotc211.org/2005/srv" 
+	xmlns:gco="http://www.isotc211.org/2005/gco" 
+	xmlns:gts="http://www.isotc211.org/2005/gts" 
+	xmlns:gml="http://www.opengis.net/gml"
+	xmlns:xlink="http://www.w3.org/1999/xlink" 
+	xmlns:date="http://exslt.org/dates-and-times" exclude-result-prefixes="date">
 	<xsl:output method="xml"/>
 	<xsl:template match="eml:eml">
 		<gmd:MD_Metadata xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:srv="http://www.isotc211.org/2005/srv" xmlns:gco="http://www.isotc211.org/2005/gco"
@@ -43,6 +52,8 @@ no metadata.
 					<xsl:with-param name="codeListValue" select="'dataset'"/>
 				</xsl:call-template>
 			</gmd:hierarchyLevel>
+			<xsl:choose>
+				<xsl:when test="dataset/metadataProvider">
 			<xsl:for-each select="dataset/metadataProvider">
 				<gmd:contact>
 					<xsl:call-template name="emlPerson2ResponsibleParty">
@@ -50,6 +61,12 @@ no metadata.
 					</xsl:call-template>
 				</gmd:contact>
 			</xsl:for-each>
+				</xsl:when>
+				<xsl:otherwise>
+					<gmd:contact nilReason="missing"/>
+				</xsl:otherwise>
+			</xsl:choose>
+			
 			<gmd:dateStamp>
 				<!-- generate a date/time stamp for the metadata document -->
 				<gco:DateTime>
