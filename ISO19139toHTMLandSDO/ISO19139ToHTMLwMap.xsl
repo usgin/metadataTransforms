@@ -2,7 +2,8 @@
 <xsl:stylesheet version="1.0" 
   xmlns:res="http://www.esri.com/metadata/res/" 
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
-  xmlns:gmd="http://www.isotc211.org/2005/gmd" >
+  xmlns:gmd="http://www.isotc211.org/2005/gmd" 
+   exclude-result-prefixes="xsl gmd res" >
 
 <!-- An XSLT template for displaying metadata that is stored in the ArcGIS metadata format.
 Modified from ESRI xslt, for use by ESRI Geoportal 
@@ -28,7 +29,8 @@ iso19139usginwMap.xslt has handler (showMap template) to build the form and div 
   <xsl:import href = "ISO19139ToSchemaOrgDataset1.0.xslt" />
   <xsl:param name="isopath"></xsl:param>
   <xsl:param name="flowdirection"/>
-  <xsl:output method="xml" indent="yes" encoding="UTF-8" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" />
+<!--  <xsl:output method="xml" indent="yes" encoding="UTF-8" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" />-->
+  <xsl:output method="html" indent="yes" encoding="UTF-8"/>
   <xsl:variable name="iso19139" select="count(//*[(local-name() = 'MD_Metadata') or (local-name() = 'MI_Metadata')])>0 " />
 
   <xsl:template match="/">

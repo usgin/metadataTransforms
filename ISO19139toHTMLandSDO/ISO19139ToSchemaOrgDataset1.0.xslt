@@ -6,7 +6,7 @@
     xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gmx="http://www.isotc211.org/2005/gmx"
     xmlns:srv="http://www.isotc211.org/2005/srv" xmlns:csw="http://www.opengis.net/cat/csw/2.0.2"
     xmlns:gml="http://www.opengis.net/gml" xmlns:xlink="http://www.w3.org/1999/xlink"
-    exclude-result-prefixes="xs" version="1.1">
+    exclude-result-prefixes="xs xsi gmi gmd srv gml gco gmx csw" version="1.1">
 
     <!-- 
   Template to build xsl transform to map content from standard ISO19139 xml metadata format to 

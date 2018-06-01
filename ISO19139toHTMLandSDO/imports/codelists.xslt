@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:res="http://www.esri.com/metadata/res/" xmlns:gmd="http://www.isotc211.org/2005/gmd" >
+<xsl:stylesheet version="1.0" 
+xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
+xmlns:res="http://www.esri.com/metadata/res/" 
+xmlns:gmd="http://www.isotc211.org/2005/gmd" >
 
 <!-- An XSLT template for displaying metadata in ArcGIS that is stored in the ArcGIS metadata format.
 
@@ -10,6 +13,11 @@
 
 
 <!-- templates for handling ISO 19115 code lists -->
+
+<!--  smr add  -->
+<xsl:import href="auxLanguages.xslt"/>
+<xsl:import href="auxCountries.xslt"/>
+
 
 <xsl:template name="CI_DateTypeCode">
 	<xsl:param name="code" />

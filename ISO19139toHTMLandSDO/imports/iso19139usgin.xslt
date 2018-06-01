@@ -3,7 +3,10 @@
 	xmlns:gmi="http://www.isotc211.org/2005/gmi"
 	xmlns:srv="http://www.isotc211.org/2005/srv" 
 	xmlns:gco="http://www.isotc211.org/2005/gco" 
-	xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:gml="http://www.opengis.net/gml" xmlns:res="http://www.esri.com/metadata/res/">
+	xmlns:gts="http://www.isotc211.org/2005/gts" 
+	xmlns:gml="http://www.opengis.net/gml" 
+	xmlns:res="http://www.esri.com/metadata/res/"  
+	xmlns:xlink="http://www.w3.org/1999/xlink">
 	<!-- An XSLT template for displaying metadata that is stored in the ISO 19139 metadata format.
 
      Copyright (c) 2009-2010, Environmental Systems Research Institute, Inc. All rights reserved.
@@ -16,7 +19,7 @@
 	<!-- SMR add imports 2012-09-07 -->
 	<!-- SMR 2017-10-03 add test for gmi:MI_Metadata as root elemenent. Doesn't display any other gmi elements if present. -->
 	
-	<xsl:import href = "general.xslt" />
+	<xsl:import href = "generalwMap.xslt" />
 	<xsl:import href = "XML.xslt" />
 	<xsl:import href = "codelists.xslt" />
 	<xsl:import href = "auxLanguages.xslt" />
@@ -44,20 +47,20 @@
 		<xsl:variable name="appSchInfo" select="//gmd:applicationSchemaInfo"/>
 		<xsl:variable name="mdExtInfo" select="//gmd:metadataExtensionInfo"/>
 		<xsl:variable name="metadata-sections" select="
-		//gmd:fileIdentifier |
-		//gmd:language |
-		//gmd:characterSet |
-		//gmd:parentIdentifier |
-		//gmd:hierarchyLevel |
-		//gmd:hierarchyLevelName |
-		//gmd:contact |
-		//gmd:dateStamp |
-		//gmd:metadataStandardName |
-		//gmd:metadataStandardVersion |
-		//gmd:dataSetURI |
-		//gmd:metadataMaintenance |
-		//gmd:metadataConstraints | 
-		//gmd:locale"/>
+		/gmd:MD_Metadata/gmd:fileIdentifier |
+		/gmd:MD_Metadata/gmd:language |
+		/gmd:MD_Metadata/gmd:characterSet |
+		/gmd:MD_Metadata/gmd:parentIdentifier |
+		/gmd:MD_Metadata/gmd:hierarchyLevel |
+		/gmd:MD_Metadata/gmd:hierarchyLevelName |
+		/gmd:MD_Metadata/gmd:contact |
+		/gmd:MD_Metadata/gmd:dateStamp |
+		/gmd:MD_Metadata/gmd:metadataStandardName |
+		/gmd:MD_Metadata/gmd:metadataStandardVersion |
+		/gmd:MD_Metadata/gmd:dataSetURI |
+		/gmd:MD_Metadata/gmd:metadataMaintenance |
+		/gmd:MD_Metadata/gmd:metadataConstraints | 
+		/gmd:MD_Metadata/gmd:locale"/>
 		<ul>
 			<li class="iso19139heading">ISO19139 metadata content</li>
 			<!-- Resource Identification -->
@@ -3092,6 +3095,21 @@
 	<xsl:template match="gmd:EX_Extent" mode="iso19139">
 		<!-- NOTE: was (dataExt | scpExt | srcExt)">-->
 		<dd>
+			<!-- TODO: show more descriptive text
+  <xsl:choose>
+    <xsl:when test="../dataExt">
+      <dt><span class="element">Other extent information</span></dt>
+    </xsl:when>
+    <xsl:when test="../scpExt">
+      <dt><span class="element">Scope extent</span></dt>
+    </xsl:when>
+    <xsl:when test="../srcExt">
+      <dt><span class="element">Extent of the source data</span></dt>
+    </xsl:when>
+    <xsl:otherwise>
+      <dt><span class="element">Extent</span></dt>
+    </xsl:otherwise>
+  </xsl:choose>-->
 			<dt>
 				<span class="element">Resource extent</span>
 			</dt>
@@ -3107,12 +3125,10 @@
 							</pre>
 						</dd>
 					</xsl:for-each>
-					<xsl:if test="gmd:geographicElement">
+					<xsl:for-each select="gmd:geographicElement">
 						<dt>
 							<span class="element"> Geographic Extent </span>
 						</dt>
-					</xsl:if>
-					<xsl:for-each select="gmd:geographicElement">
 						<dd>
 							<dd>
 								<dl>
@@ -3122,11 +3138,6 @@
 						</dd>
 						<!--        <xsl:if test="not (following-sibling::*)"><br /></xsl:if> -->
 					</xsl:for-each>
-					<xsl:if test="gmd:temporalElement">
-						<dt>
-							<span class="element"> Temporal Extent </span>
-						</dt>
-					</xsl:if>
 					<xsl:for-each select="gmd:temporalElement">
 						<xsl:apply-templates select="*" mode="iso19139"/>
 					</xsl:for-each>
@@ -3135,21 +3146,21 @@
 			</dd>
 		</dd>
 	</xsl:template>
-	<!-- Bounding Polygon Information (B.3.1.1 EX_BoundingPolygon - line341)
-	also handle points -->
+	<!-- Bounding Polygon Information (B.3.1.1 EX_BoundingPolygon - line341) -->
 	<xsl:template match="gmd:EX_BoundingPolygon" mode="iso19139">
 		<dd>
-			<dl>
+			<dt>
+				<span class="element"> BoundingPolygon </span>
+			</dt>
+			<dd>
+				<dl>
 					<xsl:for-each select="gmd:extentTypeCode">
 						<dt>
 							<span class="element"> extent Type Code </span>&#x2002;
 				<xsl:call-template name="Boolean"/>
 						</dt>
 					</xsl:for-each>
-					<xsl:for-each select="gmd:polygon/*[local-name()='Polygon']">
-						<dt>
-							<span class="element"> BoundingPolygon </span>
-						</dt>
+					<xsl:for-each select="gmd:polygon/gml:Polygon">
 						<dt>
 							<span class="element"> polygon </span>
 						</dt>
@@ -3186,29 +3197,14 @@
 							</dd>
 						</dl>
 					</xsl:for-each>
-					<xsl:for-each select=".//*[local-name()='Point']">
-						<dd>
-							<xsl:for-each select=".//*[(local-name()='pos') or (local-name()='coordinates')]">
-								<dt>
-									<span class="element">Sample Location (gmlPos): </span>&#x2002;<xsl:value-of select="."/>
-									<xsl:if test = "./*[local-name()='description']">
-										<dd>
-											<span class="element">Description: <xsl:value-of select = "./*[local-name()='description']"/></span>
-										</dd>
-									</xsl:if>
-								</dt>
-							</xsl:for-each>
-						</dd>
-					</xsl:for-each>
 					<!-- <br/> -->
 				</dl>
-			
+			</dd>
 		</dd>
 	</xsl:template>
 	<!-- Bounding Box Information (B.3.1.1 EX_GeographicBoundingBox - line343) -->
 	<xsl:template match="gmd:EX_GeographicBoundingBox" mode="iso19139">
 		<dd>
-			<dl>
 			<dt>
 				<span class="element"> Geographic Bounding Box </span>
 			</dt>
@@ -3242,7 +3238,6 @@
 					</xsl:for-each>
 				</dl>
 			</dd>
-		</dl>
 		</dd>
 		<!-- <br/> -->
 	</xsl:template>
@@ -3272,6 +3267,9 @@
 	<!-- Temporal Extent Information (B.3.1.2 EX_TemporalExtent - line350) -->
 	<xsl:template match="gmd:EX_TemporalExtent" mode="iso19139">
 		<dd>
+			<dt>
+				<span class="element"> Temporal Extent </span>
+			</dt>
 			<xsl:apply-templates select="gmd:extent/*" mode="iso19139"/>
 		</dd>
 	</xsl:template>
@@ -3423,22 +3421,35 @@
 	<xsl:template name="Date_PropertyType">
 		<xsl:value-of select="(gco:Date | gco:DateTime)[1]"/>
 	</xsl:template>
-	<!-- gco:CharacterString , gco:FreeText -->
+	<!-- gco:CharacterString , gco:FreeText, gmx:Anchor -->
 	<xsl:template name="CharacterString">
 		<xsl:for-each select="*">
-			<xsl:if test="local-name(.) = 'CharacterString'">
-				<xsl:value-of select="normalize-space(.)"/>
-			</xsl:if>
-			<xsl:if test="local-name(.) = 'PT_FreeText'">
-				<!-- <b><xsl:value-of select="name(ancestor-or-self::*[2])" /></b> -->
-				<dl>
-					<dd>
-						<b>
-							<xsl:value-of select="gmd:textGroup/gmd:LocalisedCharacterString/@locale"/>
-						</b>&#x2002;<xsl:value-of select="gmd:textGroup/gmd:LocalisedCharacterString"/>
-					</dd>
-				</dl>
-			</xsl:if>
+			<xsl:choose>
+				<xsl:when test="local-name(.) = 'CharacterString'">
+					<xsl:value-of select="normalize-space(.)"/>
+				</xsl:when>
+				<xsl:when test="local-name(.) = 'PT_FreeText'">
+					<!-- <b><xsl:value-of select="name(ancestor-or-self::*[2])" /></b> -->
+					<dl>
+						<dd>
+							<b>
+								<xsl:value-of select="gmd:textGroup/gmd:LocalisedCharacterString/@locale"/>
+							</b>&#x2002;<xsl:value-of select="gmd:textGroup/gmd:LocalisedCharacterString"/>
+						</dd>
+					</dl>
+				</xsl:when>
+				<xsl:when test="local-name(.) = 'Anchor'">
+				<a>
+					<xsl:attribute name="href">
+						<xsl:value-of select="@xlink:href"/>
+					</xsl:attribute>
+					<xsl:value-of select="normalize-space(.)"/>
+				</a>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:value-of select="normalize-space(.)"/>
+				</xsl:otherwise>
+			</xsl:choose>
 		</xsl:for-each>
 	</xsl:template>
 	<!-- gco:Record -->

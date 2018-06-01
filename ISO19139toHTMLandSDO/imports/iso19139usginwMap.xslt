@@ -23,9 +23,10 @@
 	<xsl:import href="auxCountries.xslt"/>
 	<xsl:import href="auxUCUM.xslt"/>
 
-	<xsl:output method="xml" indent="yes" encoding="UTF-8"
+<!--	<xsl:output method="xml" indent="yes" encoding="UTF-8"
 		doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN"
-		doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"/>
+		doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"/>-->
+	<xsl:output method="html" indent="yes" encoding="UTF-8"/>
 	<xsl:template name="iso19139">
 		<xsl:param name="isopath"/>
 		<!--<xsl:value-of select="concat('path: ', $isopath)"/>-->
@@ -94,9 +95,9 @@
 				//gmd:metadataConstraints |
 				//gmd:locale"/>
 
-		<div id="container">
-<div>
-	<div id="left-side">
+<div id="container">
+   <div>
+		<div id="left-side">
 			<ul>
 				<li class="iso19139heading">ISO19139 metadata content</li>
 				<!-- Resource Identification -->
@@ -156,24 +157,24 @@
 				</xsl:call-template>
 				<!-- Metadata Identification -->
 				<!-- Root node "metadata" will always exist. Only add to TOC if it contains elements
-          that describe the metadata. -->
+		        that describe the metadata. -->
 				<xsl:if test="count($metadata-sections) &gt; 0">
 					<li>
 						<a href="#Metadata_Information">Metadata Information</a>
 					</li>
 				</xsl:if>
 			</ul>
-</div>
-</div>
-			<!--displa map if have geospatial extent -->
-			<div id="right-side">
-				<!--<xsl:apply-templates select="//k4:geoLocations"/>-->
-				
-				<xsl:if test="$hasGeoSpatial">
-				<xsl:call-template name="showMap"/>
-				</xsl:if>
-			</div>
-
+	    </div>
+	
+		<!--displa map if have geospatial extent -->
+		<div id="right-side">
+			<!--<xsl:apply-templates select="//k4:geoLocations"/>-->
+			
+			<xsl:if test="$hasGeoSpatial">
+			<xsl:call-template name="showMap"/>
+			</xsl:if>
+		</div>
+	</div>
 			<!-- PUT METADATA CONTENT ON THE HTML PAGE  -->
 			<!-- Resource Identification -->
 			<xsl:apply-templates select="$dataIdInfo/*" mode="iso19139"/>
