@@ -29,6 +29,7 @@ Transform defines import elements for stylesheets and scripts; doesn't include s
 ### generalwMap.xslt 
 
 Transform defines import elements for stylesheets and scripts; Javascript to generate map is imported here.
+datadoi.css style sheet from IEDA has been inserted inline in the styles template.
 
 ### iso19139usginMap.xslt
 
@@ -41,9 +42,7 @@ in .gitignore
 
 ### private-template.xslt
 
-change name to private.xslt in your checkout of the repo when you want to deploy or test. Put your keys in the indicated variables. 
-
-template xslt that will be included in repository clones
+template xslt that will be included in repository clones.  change name to private.xslt in your checkout of the repo when you want to deploy or test. Put your keys in the indicated variables. 
 
 ### other support files
 
@@ -69,13 +68,7 @@ Sets up the base map, using WMS tiles from the GMRT OGC web map service.
 
 Handlers for jquery. No modifications in these scripts for use here, they are cached to make sure we have the correct versions.
 
-### doimap.CSS
-
-Styles used for map display. The cascade of CSS files has not been analyzed here, and there's probably a lot of unused stuff that could be culled. TBD....
 
 # Deployment
 
-This package is designed to deploy on a LAMP or WAMP server, tested with php 5.1.6 (LAMP, RedHat) and 5.6.31 (WAMP, Windows 10). Deploy the code in a directory ../metadata/iso, relative to the root web path. The directory should contain subdirectories containing ISO XML metadata. In the IEDA deployment, the subdirectories are associated with IEDA partner systems, and the code contains various customizations specific to the IEDA environment. Expected subdirectories are USAP, ECL, and MGDL. 
-
-The .htaccess file takes a URL like http://{$_SERVER['HTTP_HOST']}/metadata/{NNNNNN} and rewrites to pass to the displaymetadata.php page with file=NNNNNN as the parameter. This will generate and display an html view for that resource with a schema.org JSON-LD script in the header
-
+This package is designed to deploy on a LAMP or WAMP server, tested with php 5.1.6 (LAMP, RedHat) and 5.6.31 (WAMP, Windows 10).   Getting the maps to display can be tricky, I don't understand fully all the environmental requirements...
