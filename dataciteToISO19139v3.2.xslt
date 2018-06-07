@@ -33,7 +33,9 @@
 	SMR 2018-01-25 update to use for any IEDA DataCite. 
 	Have to insert logic to determine partner system source if new partners are added 
 	SMR 2018-03-18 update header comments, change name so datacite is lower case, for consistency
-	add license and copyright statement.	
+	add license and copyright statement.
+	SMR 2018 ? update to use Available date as date released if it is available, otherwise publication year
+		
 	-->
     
     
@@ -740,7 +742,8 @@
         </gmd:MD_Metadata>
     </xsl:template>
 
-    <!-- retrieves basic reference dates of the resource-->
+    <!-- retrieves basic reference dates of the resource
+    Handles created date, publication (Available) date, and revision date-->
     <xsl:template name="resourcedates">
         <xsl:if test="$datacite-dates/*[local-name() = 'date' and @dateType = 'Created'] != ''">
             <gmd:date>
@@ -786,7 +789,24 @@
         </xsl:if>
         
         <xsl:choose>
-        <xsl:when test="string-length(//*[local-name() = 'publicationYear'])>0">
+            <!-- Take 'Available' date first because that is YYYY-MM-DD -->
+            <xsl:when test="$datacite-dates/*[local-name() = 'date' and @dateType = 'Available'] != ''">
+                <gmd:date>
+                    <gmd:CI_Date>
+                        <gmd:date>
+                            <gco:Date>
+                                <xsl:value-of select="$datacite-dates/*[local-name() = 'date' and @dateType = 'Available'] "/>
+                            </gco:Date>
+                        </gmd:date>
+                        <gmd:dateType>
+                            <gmd:CI_DateTypeCode
+                                codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
+                                codeListValue="publication">publication</gmd:CI_DateTypeCode>
+                        </gmd:dateType>
+                    </gmd:CI_Date>
+                </gmd:date>
+            </xsl:when>
+            <xsl:when test="string-length(//*[local-name() = 'publicationYear'])>0">
             <gmd:date>
             <gmd:CI_Date>
                 <gmd:date>
@@ -802,10 +822,12 @@
             </gmd:CI_Date>
         </gmd:date>
         </xsl:when>
-            <xsl:otherwise>
+           <xsl:otherwise>
                 <gmd:date gco:nilReason="missing"/>
             </xsl:otherwise>
         </xsl:choose>
+        <!-- the following test is designed to filter out update-metadata dates if these follow the convention
+        that metadata update date strings are prefixed with 'metadata'-->
         <xsl:if
             test="
                 ($datacite-dates/*[local-name() = 'date' and @dateType = 'Updated'][1] != '')
