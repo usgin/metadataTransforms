@@ -573,7 +573,23 @@
                                         <!-- accumulate topic elements in hasISOtopic variable -->
                                         <gmd:topicCategory>
                                             <gmd:MD_TopicCategoryCode>
-                                                <xsl:value-of select="string(.)"/>
+                                                <xsl:choose>
+                                                    <xsl:when test="translate(normalize-space(string(.)),$uppercase,$smallcase)='atmosphere'">
+                                                        <xsl:value-of select="string('climatologyMeteorologyAtmosphere')"/>
+                                                    </xsl:when>
+                                                    <xsl:when test="translate(normalize-space(string(.)),$uppercase,$smallcase)='military'">
+                                                        <xsl:value-of select="string('intelligenceMilitary')"/>
+                                                    </xsl:when>
+                                                    <xsl:when test="translate(normalize-space(string(.)),$uppercase,$smallcase)='cadastre'">
+                                                        <xsl:value-of select="string('planningCadastre')"/>
+                                                    </xsl:when>
+                                                    <xsl:when test="translate(normalize-space(string(.)),$uppercase,$smallcase)='communication'">
+                                                        <xsl:value-of select="string('utilitiesCommunication')"/>
+                                                    </xsl:when>
+                                                    <xsl:otherwise>
+                                                        <xsl:value-of select="normalize-space(string(.))"/>
+                                                    </xsl:otherwise>
+                                                </xsl:choose>
                                             </gmd:MD_TopicCategoryCode>
                                         </gmd:topicCategory>
                                         
