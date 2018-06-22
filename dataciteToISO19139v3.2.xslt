@@ -35,19 +35,27 @@
 	SMR 2018-03-18 update header comments, change name so datacite is lower case, for consistency
 	add license and copyright statement.
 	SMR 2018 ? update to use Available date as date released if it is available, otherwise publication year
-		
+    SMR 2018-06-19  add input parameter for gmd:dateStamp named 'updateDate'. This should be the most recent update
+	   date for the source record being transformed. Since DataCiteXML doesn't have an element for the 
+	   metadata update date, this should be populated from the file-system update date	
+	SMR 2018-06-21 Add tests to make sure that record gets gmd:dateStamp and topicCategory. 
+	    dateStamp can be passed as parameter or defaults to now(); topicCategory is pulled from 
+	   subjects/subject if there is an ISO value, otherwise defaults to 'geoscientificInformation'
 	-->
     
     
     <!--  * @copyright    2007-2017 Interdisciplinary Earth Data Alliance, Columbia University. 
 	        All Rights Reserved.
  *          Licensed under the Apache License, Version 2.0 (the "License"); 
-            you may not use this file except in compliance with the License. 
-			You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *           you may not use this file except in compliance with the License. 
+ *			You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing, software distributed under the License is 
     distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
     See the License for the specific language governing permissions and limitations under the License -->
+
+<!-- parameter to pass in the gmd:dateStamp for metadata update date -->
+    <xsl:param name="updateDate"></xsl:param>
 
 <!-- this is used for the Data Centre keyword type for faceting in the search interface (Geoportal) -->
     <xsl:variable name="datacentre">
@@ -179,8 +187,7 @@
     <xsl:variable name="maintenanceContactID"
         select="string('http://orcid.org/0000-0001-6041-5302')"/>
     <xsl:variable name="maintenanceContactName" select="string('metadata curator')"/>
-    <xsl:variable name="maintenanceContactEmail" select="string('info@iedadata.org')"/>
-
+    <xsl:variable name="maintenanceContactEmail" select="string('maintenance.contact@email.org')"/>
     <xsl:variable name="currentDateTime">
         <xsl:value-of select="datetime:date-time()"/>
     </xsl:variable>
@@ -283,24 +290,11 @@
             <gmd:dateStamp>
                 <xsl:variable name="theDate">
                     <xsl:choose>
-                        <xsl:when
-                            test="
-                                //*[local-name() = 'date'][starts-with(text(), 'metadata')] and
-                                string-length(normalize-space(substring-after(string(//*[local-name() = 'date'][starts-with(text(), 'metadata')])
-                                , 'metadata update:'))) != ''">
-                            <!-- ieda dataCite labels metadata update date in the date string to avoid ambiguity -->
-                            <xsl:value-of
-                                select="
-                                    normalize-space(substring-after(string(//*[local-name() = 'date'][starts-with(text(), 'metadata')])
-                                    , 'metadata update:'))"/>
-
-                        </xsl:when>
-                        <xsl:when test="//*[local-name() = 'date'][@dateType = 'Updated'] != ''">
-                            <xsl:value-of
-                                select="//*[local-name() = 'date' and @dateType = 'Updated'][1]"/>
+                        <xsl:when test="$updateDate">
+                            <xsl:value-of select="$updateDate"/>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:value-of select="''"/>
+                            <xsl:value-of select="$currentDateTime"/>
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:variable>
@@ -325,13 +319,17 @@
                         </xsl:choose>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:attribute name="gco:nilReason">
-                            <xsl:value-of select="string('missing')"/>
-                        </xsl:attribute>
+                        <!-- put something in, but flag as bogus -->
+                        <gco:DateTime>
+                            <xsl:value-of select="$currentDateTime"/>
+                            <xsl:attribute name="gco:nilReason">
+                                <xsl:value-of select="string('missing')"/>
+                            </xsl:attribute>
+                        </gco:DateTime>
                     </xsl:otherwise>
                 </xsl:choose>
             </gmd:dateStamp>
-
+            
             <gmd:metadataStandardName>
                 <gco:CharacterString>ISO 19139 Geographic Information - Metadata - Implementation Specification</gco:CharacterString>
             </gmd:metadataStandardName>
@@ -564,8 +562,34 @@
 
                     <!-- check namespace to determine what DataCite version we are in;
 						the spatial coverage encoding is complete different for v.4 -->
-
                     <xsl:choose>
+                        <xsl:when test="//*[local-name() = 'subject'][contains('farming, biota, boundaries, climatologyMeteorologyAtmosphere, economy, elevation, environment, geoscientificInformation, health, imageryBaseMapsEarthCover, intelligenceMilitary, inlandWaters, location, oceans, planningCadastre, society, structure, transportation, utilitiesCommunication, ', 
+                            concat(normalize-space(string(.)),', '))]">
+                            <xsl:for-each select="//*[local-name() = 'subject']">
+                                    <xsl:if
+                                        test="string-length(normalize-space(string(.)))>0 and
+                                        contains('farming, biota, boundaries, climatologyMeteorologyAtmosphere, economy, elevation, environment, geoscientificInformation, health, imageryBaseMapsEarthCover, intelligenceMilitary, inlandWaters, location, oceans, planningCadastre, society, structure, transportation, utilitiesCommunication, ', 
+                                        concat(normalize-space(string(.)),', '))">
+                                        <!-- accumulate topic elements in hasISOtopic variable -->
+                                        <gmd:topicCategory>
+                                            <gmd:MD_TopicCategoryCode>
+                                                <xsl:value-of select="string(.)"/>
+                                            </gmd:MD_TopicCategoryCode>
+                                        </gmd:topicCategory>
+                                        
+                                    </xsl:if>
+                            </xsl:for-each>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <gmd:topicCategory gco:nilReason="missing">
+                                <gmd:MD_TopicCategoryCode>
+                                    <xsl:value-of select="string('geoscientificInformation')"/>
+                                </gmd:MD_TopicCategoryCode>
+                            </gmd:topicCategory>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                        
+                      <xsl:choose>  
                         <xsl:when
                             test="string(namespace-uri(//*[local-name() = 'identifier'])) = 'http://datacite.org/schema/kernel-4'">
                             <xsl:call-template name="spatialcoverage"/>
