@@ -30,7 +30,7 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
     <xsl:variable name="uppercase" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'"/>
     <xsl:variable name="authorRoles" select="'editor,coAuthor,author,orginator'"/>
 
- <!--   <xsl:template match="//gmd:MD_Metadata | gmi:MI_Metadata"> -->
+<!--    <xsl:template match="//gmd:MD_Metadata | gmi:MI_Metadata">--> 
        <xsl:template name="iso2sdo">
            <xsl:param name="isopath"/>
         <!-- Define variables for content elements -->
@@ -160,13 +160,13 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
                     </xsl:choose>
                 </xsl:when>
                 <xsl:when test="string-length(//gmd:fileIdentifier/gco:CharacterString) > 0">
-                    <!-- take the fileIdentifier -->
-                    <xsl:value-of select="//gmd:fileIdentifier/gco:CharacterString"/>
+                    <!-- take the fileIdentifier; schema only allows 1 value -->
+                    <xsl:value-of select="normalize-space(//gmd:fileIdentifier/gco:CharacterString)"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <!-- use the title... -->
                     <xsl:value-of
-                        select="translate(//gmd:citation//gmd:title/gco:CharacterString, ' ', '')"/>
+                        select="normalize-space(translate(//gmd:citation//gmd:title/gco:CharacterString, ' ', ''))"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
@@ -323,7 +323,7 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
                 <xsl:text>), </xsl:text>
                 <!-- will potentially have problems here if there are multiple titles; this just takes the first one -->
                 <xsl:value-of disable-output-escaping="yes"
-                    select="//gmd:citation//gmd:title/gco:CharacterString"/>
+                    select="normalize-space(//gmd:citation//gmd:title/gco:CharacterString)"/>
 
                 <!-- get the publisher -->
                 <xsl:if
@@ -335,7 +335,7 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
                 </xsl:if>
                 <xsl:if test="string-length($datasetURI) > 0">
                     <xsl:text>, </xsl:text>
-                    <xsl:value-of select="$datasetURI"/>
+                    <xsl:value-of select="normalize-space($datasetURI)"/>
                 </xsl:if>
                 <xsl:text>.</xsl:text>
             </xsl:for-each>
@@ -373,7 +373,7 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
                 </xsl:choose>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:variable name="description" select="//gmd:abstract[1]/gco:CharacterString"/>
+        <xsl:variable name="description" select="normalize-space(//gmd:abstract[1]/gco:CharacterString)"/>
         <xsl:variable name="DataCatalogName"
             select="'Name of catalog source for record being transformed'"/>
         <xsl:variable name="DataCatalogURL" select="'not defined'"/>
@@ -389,7 +389,7 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
             <xsl:for-each select="//gmd:identificationInfo//gmd:credit">
                 <xsl:text>{&#10;    "@type":"Role",&#10;</xsl:text>
                 <xsl:text>"roleName":"credit",&#10;    "description":"</xsl:text>
-                <xsl:value-of select="child::node()/text()"/>
+                <xsl:value-of select="normalize-space(child::node()/text())"/>
                 <!-- allow for Anchor or CharacterString -->
                 <xsl:text>"</xsl:text>
                 <xsl:if test="string-length(gmx:Anchor/@xlink:href) > 0">
@@ -449,7 +449,7 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
 
             <xsl:variable name="subjectsString">
                 <xsl:for-each select="//gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:keyword">
-                    <xsl:value-of select="child::node()/text()"/>
+                    <xsl:value-of select="normalize-space(child::node()/text())"/>
                 </xsl:for-each>
             </xsl:variable>
 
@@ -457,7 +457,7 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
                 select="//gmd:extent//gmd:geographicIdentifier//gmd:code/gco:CharacterString">
                 <xsl:if test="not(contains($subjectsString, text()))">
                     <xsl:text>,&#10;"</xsl:text>
-                    <xsl:value-of select="text()"/>
+                    <xsl:value-of select="normalize-space(text())"/>
                     <xsl:text>"</xsl:text>
                 </xsl:if>
             </xsl:for-each>
@@ -722,7 +722,7 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
         <!-- put award information in contributor...  -->
         <xsl:if test="string-length(string($contributors)) > 0">
             <xsl:text>  "contributor": </xsl:text>
-            <xsl:value-of select="$contributors"/>
+            <xsl:value-of select="normalize-space($contributors)"/>
             <xsl:text>,&#10;</xsl:text>
         </xsl:if>
 
