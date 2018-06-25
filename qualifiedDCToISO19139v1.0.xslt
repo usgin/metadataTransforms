@@ -52,7 +52,18 @@
     </xsl:template>
     <!-- define variables for top level elements in dc xml to simplify xpaths... -->
     <xsl:variable name="dc-identifier" select="//*[local-name() = 'identifier']"/>
-    <xsl:variable name="dc-titles" select="//*[local-name() = 'title']"/>
+    <xsl:variable name="dc-titles">
+        <!-- make sure something gets put in the title -->
+        <xsl:choose>
+            <xsl:when test="string-length(//*[local-name() = 'title'][1])>0">
+                <xsl:value-of select="//*[local-name() = 'title'][1]"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="string('No title provided')"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
+    
     <!--    <xsl:variable name="dc-alternateIDs" select="//*[local-name() = 'alternateIdentifiers']"/>-->
     <xsl:variable name="dc-contributors" select="//*[local-name() = 'contributor']"/>
     <!-- dc: or dct: -->
