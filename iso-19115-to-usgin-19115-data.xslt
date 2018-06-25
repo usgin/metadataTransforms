@@ -870,9 +870,42 @@ updated 11/19/2010 correct
 						<xsl:apply-templates select="$inputInfo/gmd:topicCategory"
 							mode="no-namespaces"/>
 					</xsl:when>
+					<xsl:when test="//*[local-name() = 'keyword']/*[contains('farming, biota, boundaries, climatologyMeteorologyAtmosphere, economy, elevation, environment, geoscientificInformation, health, imageryBaseMapsEarthCover, intelligenceMilitary, inlandWaters, location, oceans, planningCadastre, society, structure, transportation, utilitiesCommunication, ', 
+						concat(normalize-space(string(.)),', '))]">
+						<xsl:for-each select="//*[local-name() = 'keyword']/*">
+							<xsl:if
+								test="string-length(normalize-space(string(.)))>0 and
+								contains('farming, biota, boundaries, climatologyMeteorologyAtmosphere, economy, elevation, environment, geoscientificInformation, health, imageryBaseMapsEarthCover, intelligenceMilitary, inlandWaters, location, oceans, planningCadastre, society, structure, transportation, utilitiesCommunication, ', 
+								concat(normalize-space(string(.)),', '))">
+								<!-- accumulate topic elements in hasISOtopic variable -->
+								<gmd:topicCategory>
+									<gmd:MD_TopicCategoryCode>
+										<xsl:choose>
+											<xsl:when test="translate(normalize-space(string(.)),$uppercase,$lowercase)='atmosphere'">
+												<xsl:value-of select="string('climatologyMeteorologyAtmosphere')"/>
+											</xsl:when>
+											<xsl:when test="translate(normalize-space(string(.)),$uppercase,$lowercase)='military'">
+												<xsl:value-of select="string('intelligenceMilitary')"/>
+											</xsl:when>
+											<xsl:when test="translate(normalize-space(string(.)),$uppercase,$lowercase)='cadastre'">
+												<xsl:value-of select="string('planningCadastre')"/>
+											</xsl:when>
+											<xsl:when test="translate(normalize-space(string(.)),$uppercase,$lowercase)='communication'">
+												<xsl:value-of select="string('utilitiesCommunication')"/>
+											</xsl:when>
+											<xsl:otherwise>
+												<xsl:value-of select="normalize-space(string(.))"/>
+											</xsl:otherwise>
+										</xsl:choose>
+									</gmd:MD_TopicCategoryCode>
+								</gmd:topicCategory>
+								
+							</xsl:if>
+						</xsl:for-each>
+					</xsl:when>
 					<xsl:otherwise>
 						<gmd:topicCategory>
-							<!-- <xsl:comment>no topic category code in source metadata, USGIN XSLT inserted default value</xsl:comment>-->
+							<xsl:comment>no topic category code in source metadata, USGIN XSLT inserted default value</xsl:comment>
 							<gmd:MD_TopicCategoryCode>
 								<xsl:value-of select="'geoscientificInformation'"/>
 							</gmd:MD_TopicCategoryCode>
