@@ -49,7 +49,9 @@ updated 11/19/2010 correct
 	
 - version 1.0 2011-1-25 
  updated 2018-06-22 SMR. Move from original USGIN geoportal installation to USGIN/metadataTransforms gitHub
-	Did some work on xslt, then realized have a newer version that Leah Musil cleaned up. Abandon updates
+	refactor temporal extent handling, make sure all elements get copied.
+	update metadata maintenance
+	
 	
 	************************************************************************************************** -->
 	<xsl:param name="sourceUrl"/>
@@ -57,13 +59,19 @@ updated 11/19/2010 correct
 	<xsl:param name="currentDate"/>
 	<!-- maintenance note checks if metadata has been processed -->
 	<xsl:param name="metadataMaintenanceNote"
-		select="'This metadata record has been processed by the iso-19115-to-usgin-19115-data XSLT to ensure that all mandatory content for USGIN profile has been added.'"/>
+		select="'This metadata record has been processed by the iso-19115-to-usgin-19115-data XSLT to ensure that all mandatory content for USGIN profile has been added. using USGIN to ISO19139 data transformation by SM Richard and L. Musil'"/>
 	<!-- All to lower case -->
 	<xsl:variable name="lowercase" select="'abcdefghijklmnopqrstuvwxyz'"/>
 	<xsl:variable name="uppercase" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'"/>
 	<xsl:variable name="USGIN-resourceTypes"
 		select="'|collection|collection:dataset|collection:dataset:catalog|collection:physical artifact collection|document|document:image|document:image:stillimage|document:image:stillimage:human-generated image|document:image:stillimage:human-generated image:map|document:image:stillimage:photograph|document:image:stillimage:remote sensing earth image|document:image:moving image|document:sound|document:text|document:text:hypertext document|event|event:project|model|physical artifact|service|software|software:stand-alone-application|software:interactive resource|structured digital data item|sampling point|'"/>
-
+	
+	<!-- these variables set content for gmd:metadataMaintenance element at the end of the record
+		recommend using these to report on how this record was created and by who. -->
+	<xsl:variable name="maintenanceContactID"
+		select="string('http://orcid.org/0000-0001-6041-5302')"/> <!-- ORCID for Steve Richard, change as appropriate -->
+	<xsl:variable name="maintenanceContactName" select="string('metadata curator')"/>
+	<xsl:variable name="maintenanceContactEmail" select="string('metadata@usgin.org')"/>
 
 	<!-- start main processing chain for XSLT -->
 	<xsl:template match="gmd:MD_Metadata | gmi:MI_Metadata">
@@ -260,12 +268,12 @@ updated 11/19/2010 correct
 			</gmd:dateStamp>
 			<gmd:metadataStandardName>
 				<gco:CharacterString>
-					<xsl:value-of select="'ISO-USGIN'"/>
+					<xsl:value-of select="'ISO 19115:2003/19139'"/>
 				</gco:CharacterString>
 			</gmd:metadataStandardName>
 			<gmd:metadataStandardVersion>
 				<gco:CharacterString>
-					<xsl:value-of select="'1.2'"/>
+					<xsl:value-of select="'ISO-USGIN-1.3'"/>
 				</gco:CharacterString>
 			</gmd:metadataStandardVersion>
 			<gmd:dataSetURI>
@@ -502,10 +510,9 @@ updated 11/19/2010 correct
 											<!-- use USGIN Citation Handler -->
 											<xsl:if test="gmd:sourceCitation">
 												<gmd:sourceCitation>
-												<xsl:call-template name="usgin:citationHandler">
-												<xsl:with-param name="inputCit"
-												select="gmd:sourceCitation/gmd:CI_Citation"/>
-												</xsl:call-template>
+													<xsl:call-template name="usgin:citationHandler">
+														<xsl:with-param name="inputCit" select="gmd:sourceCitation/gmd:CI_Citation"/>
+													</xsl:call-template>
 												</gmd:sourceCitation>
 											</xsl:if>
 											<!-- end citation section -->
@@ -541,61 +548,93 @@ updated 11/19/2010 correct
 			<!--  <xsl:copy-of select="$var_InputRootNode/gmd:applicationSchemaInfo"/>-->
 			<xsl:apply-templates select="$var_InputRootNode/gmd:applicationSchemaInfo"
 				mode="no-namespaces"/>
-			<!--           <xsl:for-each select="$var_InputRootNode/gmd:metadataMaintenance">  -->
-			<gmd:metadataMaintenance>
-				<gmd:MD_MaintenanceInformation>
-					<xsl:choose>
-						<xsl:when
-							test="$var_InputRootNode/gmd:metadataMaintenance/gmd:MD_MaintenanceInformation/gmd:maintenanceAndUpdateFrequency">
-							<!--   <xsl:copy-of select="$var_InputRootNode/gmd:metadataMaintenance/gmd:MD_MaintenanceInformation/gmd:maintenanceAndUpdateFrequency"/>-->
-							<xsl:apply-templates
-								select="$var_InputRootNode/gmd:metadataMaintenance/gmd:MD_MaintenanceInformation/gmd:maintenanceAndUpdateFrequency"
-								mode="no-namespaces"/>
-						</xsl:when>
-						<xsl:otherwise>
-							<gmd:maintenanceAndUpdateFrequency>
-								<!--no update frequency in source metadata, USGIN XSLT inserted 'irregular' as a default -->
-								<gmd:MD_MaintenanceFrequencyCode
-									codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_MaintenanceFrequencyCode"
-									codeListValue="IRREGULAR">irregular
-								</gmd:MD_MaintenanceFrequencyCode>
-							</gmd:maintenanceAndUpdateFrequency>
-						</xsl:otherwise>
-					</xsl:choose>
-
-					<xsl:apply-templates
-						select="$var_InputRootNode/gmd:metadataMaintenance/gmd:MD_MaintenanceInformation/gmd:dateOfNextUpdate"
-						mode="no-namespaces"/>
-
-					<xsl:apply-templates
-						select="$var_InputRootNode/gmd:metadataMaintenance/gmd:MD_MaintenanceInformation/gmd:userDefinedMaintenanceFrequency"
-						mode="no-namespaces"/>
-
-					<xsl:apply-templates
-						select="$var_InputRootNode/gmd:metadataMaintenance/gmd:MD_MaintenanceInformation/gmd:updateScope"
-						mode="no-namespaces"/>
-
-					<xsl:apply-templates
-						select="$var_InputRootNode/gmd:metadataMaintenance/gmd:MD_MaintenanceInformation/gmd:updateScopeDescription"
-						mode="no-namespaces"/>
-
-					<xsl:apply-templates
-						select="$var_InputRootNode/gmd:metadataMaintenance/gmd:MD_MaintenanceInformation/gmd:maintenanceNote"
-						mode="no-namespaces"/>
-					<!-- add a note that the record has been processed by this xslt -->
-					<gmd:maintenanceNote>
-						<gco:CharacterString>
-							<xsl:value-of
-								select="concat($metadataMaintenanceNote, '2013-11-04T12:00:00')"/>
-						</gco:CharacterString>
-					</gmd:maintenanceNote>
-
-					<xsl:apply-templates
-						select="$var_InputRootNode/gmd:metadataMaintenance/gmd:MD_MaintenanceInformation/gmd:contact"
-						mode="no-namespaces"/>
-				</gmd:MD_MaintenanceInformation>
-			</gmd:metadataMaintenance>
-
+			
+			
+			<!-- only one metadata maintenance element is allowed, so have to merge with what's in source -->
+			<!-- set context -->
+			<xsl:for-each select = "$var_InputRootNode/gmd:metadataMaintenance/gmd:MD_MaintenanceInformation">
+				<gmd:metadataMaintenance>
+					<gmd:MD_MaintenanceInformation>
+						<xsl:choose>
+							<xsl:when test="gmd:maintenanceAndUpdateFrequency">
+								<!--   <xsl:copy-of select="$var_InputRootNode/gmd:metadataMaintenance/gmd:MD_MaintenanceInformation/gmd:maintenanceAndUpdateFrequency"/>-->
+								<xsl:apply-templates select="gmd:maintenanceAndUpdateFrequency" mode="no-namespaces"/>
+							</xsl:when>
+							<xsl:otherwise>
+								<gmd:maintenanceAndUpdateFrequency>
+									<!--no update frequency in source metadata, USGIN XSLT inserted 'irregular' as a default -->
+									<gmd:MD_MaintenanceFrequencyCode
+										codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_MaintenanceFrequencyCode"
+										codeListValue="IRREGULAR">irregular
+									</gmd:MD_MaintenanceFrequencyCode>
+								</gmd:maintenanceAndUpdateFrequency>
+							</xsl:otherwise>
+						</xsl:choose>
+	
+						<xsl:apply-templates select="gmd:dateOfNextUpdate" mode="no-namespaces"/>
+	
+						<xsl:apply-templates select="gmd:userDefinedMaintenanceFrequency" mode="no-namespaces"/>
+	
+						<xsl:apply-templates select="gmd:updateScope" mode="no-namespaces"/>
+	
+						<xsl:apply-templates select="gmd:updateScopeDescription" mode="no-namespaces"/>
+	
+						<xsl:apply-templates select="gmd:maintenanceNote" mode="no-namespaces"/>
+						<!-- add a note that the record has been processed by this xslt; variable is defined at top of 
+						this document -->
+						<gmd:maintenanceNote>
+							<gco:CharacterString>
+								<xsl:variable name='finalNote'>
+									<xsl:value-of select="concat($metadataMaintenanceNote, '. ')"/>
+									<xsl:if test="string-length($currentDate)>0">
+										<xsl:value-of select="concat('Transformed date: ', $currentDate, '. ')"/>
+									</xsl:if>
+									<xsl:if test="string-length($sourceUrl)>0">
+										<xsl:value-of select = "concat ('Original source URL: ', $sourceUrl, '. ')"/>
+									</xsl:if>
+								</xsl:variable>
+								<xsl:value-of select="normalize-space(string($finalNote))"/>
+							</gco:CharacterString>
+						</gmd:maintenanceNote>
+	
+						<xsl:apply-templates select="gmd:contact" mode="no-namespaces"/>
+						<!-- add USGIN maintenance contact -->
+						<gmd:contact>
+							<xsl:if test="$maintenanceContactID != ''">
+								<xsl:attribute name="xlink:href">
+									<xsl:value-of select="$maintenanceContactID"/>
+								</xsl:attribute>
+							</xsl:if>
+							<gmd:CI_ResponsibleParty>
+								<gmd:individualName>
+									<gco:CharacterString>
+										<xsl:value-of select="$maintenanceContactName"/>
+									</gco:CharacterString>
+								</gmd:individualName>
+								<gmd:contactInfo>
+									<gmd:CI_Contact>
+										<gmd:address>
+											<gmd:CI_Address>
+												<gmd:electronicMailAddress>
+													<gco:CharacterString>
+														<xsl:value-of select="$maintenanceContactEmail"/>
+													</gco:CharacterString>
+												</gmd:electronicMailAddress>
+											</gmd:CI_Address>
+										</gmd:address>
+									</gmd:CI_Contact>
+								</gmd:contactInfo>
+								<gmd:role>
+									<gmd:CI_RoleCode
+										codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode"
+										codeListValue="processor">processor</gmd:CI_RoleCode>
+								</gmd:role>
+							</gmd:CI_ResponsibleParty>
+						</gmd:contact>
+					</gmd:MD_MaintenanceInformation>
+				</gmd:metadataMaintenance>
+			</xsl:for-each>
+			
 		</gmd:MD_Metadata>
 	</xsl:template>
 
@@ -805,11 +844,33 @@ updated 11/19/2010 correct
 		<xsl:param name="inputInfo"/>
 		<gmd:identificationInfo>
 			<gmd:MD_DataIdentification>
+	<!-- content for identification section:
+	((gmd:citation, 
+	gmd:abstract, 
+	gmd:purpose{0-1}, 
+	gmd:credit{0-UNBOUNDED}, 
+	gmd:status{0-UNBOUNDED}, 
+	gmd:pointOfContact{0-UNBOUNDED}, 
+	gmd:resourceMaintenance{0-UNBOUNDED}, 
+	gmd:graphicOverview{0-UNBOUNDED}, 
+	gmd:resourceFormat{0-UNBOUNDED}, 
+	gmd:descriptiveKeywords{0-UNBOUNDED}, 
+	gmd:resourceSpecificUsage{0-UNBOUNDED}, 
+	gmd:resourceConstraints{0-UNBOUNDED}, 
+	gmd:aggregationInfo{0-UNBOUNDED}), 
+	(gmd:spatialRepresentationType{0-UNBOUNDED}, 
+	gmd:spatialResolution{0-UNBOUNDED}, 
+	gmd:language{1-UNBOUNDED}, 
+	gmd:characterSet{0-UNBOUNDED}, 
+	gmd:topicCategory{0-UNBOUNDED}, 
+	gmd:environmentDescription{0-1}, 
+	gmd:extent{0-UNBOUNDED}, 
+	gmd:supplementalInformation{0-1}))-->
+				
 				<!-- elements from abstract MD_Identification -->
 				<gmd:citation>
 					<xsl:call-template name="usgin:citationHandler">
-						<xsl:with-param name="inputCit"
-							select="$inputInfo/gmd:citation/gmd:CI_Citation"/>
+						<xsl:with-param name="inputCit" select="$inputInfo/gmd:citation/gmd:CI_Citation"/>
 					</xsl:call-template>
 				</gmd:citation>
 				<xsl:apply-templates select="$inputInfo/gmd:abstract" mode="no-namespaces"/>
@@ -817,8 +878,7 @@ updated 11/19/2010 correct
 				<xsl:apply-templates select="$inputInfo/gmd:credit" mode="no-namespaces"/>
 				<xsl:apply-templates select="$inputInfo/gmd:status" mode="no-namespaces"/>
 				<!--				<xsl:apply-templates select="$inputInfo/gmd:pointOfContact" mode="no-namespaces"/> -->
-				<xsl:for-each
-					select="$inputInfo//gmd:pointOfContact[descendant::gmd:CI_RoleCode[string-length(@codeListValue) > 0]]">
+				<xsl:for-each select="$inputInfo//gmd:pointOfContact[descendant::gmd:CI_RoleCode]">
 					<gmd:pointOfContact>
 						<xsl:call-template name="usgin:ResponsibleParty">
 							<xsl:with-param name="inputParty" select="gmd:CI_ResponsibleParty"/>
@@ -833,28 +893,46 @@ updated 11/19/2010 correct
 						</xsl:call-template>
 					</gmd:pointOfContact>
 				</xsl:for-each>
-				<xsl:apply-templates select="$inputInfo/gmd:resourceMaintenance"
-					mode="no-namespaces"/>
+				<xsl:apply-templates select="$inputInfo/gmd:resourceMaintenance" mode="no-namespaces"/>
+				<xsl:apply-templates select="$inputInfo/gmd:graphicOverview" mode="no-namespaces"/>
+				
 				<!--          USGIN puts format information in distributionFormat 
          <xsl:copy-of select="$inputInfo/gmd:resourceFormat" copy-namespaces="no"/>  -->
-				<!--	<xsl:copy-of select="$inputInfo/gmd:descriptiveKeywords"/>  -->
-				<xsl:apply-templates select="$inputInfo/gmd:descriptiveKeywords"
-					mode="no-namespaces"/>
-				<xsl:apply-templates select="$inputInfo/gmd:resourceSpecificUsage"
-					mode="no-namespaces"/>
-				<xsl:apply-templates select="$inputInfo/gmd:resourceConstraints"
-					mode="no-namespaces"/>
+				
+				<xsl:apply-templates select="$inputInfo/gmd:descriptiveKeywords" mode="no-namespaces"/>
+				<xsl:choose>
+					<xsl:when test="//gmd:geographicElement/* | //gmd:spatialExtent/* | 
+						//gmd:keyword[*[.='non-geographic']]">
+						<!-- do nothing -->
+					</xsl:when>
+					<xsl:otherwise>
+						<!-- put in non-geographic keyword -->
+						<gmd:descriptiveKeywords>
+							<gmd:MD_Keywords>
+								<gmd:keyword>
+									<gco:CharacterString>non-geographic</gco:CharacterString>
+								</gmd:keyword>
+								<gmd:type>
+									<gmd:MD_KeywordTypeCode 
+										codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_KeywordTypeCode" 
+										codeListValue="place">place</gmd:MD_KeywordTypeCode>
+								</gmd:type>
+							</gmd:MD_Keywords>
+						</gmd:descriptiveKeywords>
+					</xsl:otherwise>
+				</xsl:choose>
+				
+				<xsl:apply-templates select="$inputInfo/gmd:resourceSpecificUsage" mode="no-namespaces"/>
+				<xsl:apply-templates select="$inputInfo/gmd:resourceConstraints" mode="no-namespaces"/>
 				<xsl:apply-templates select="$inputInfo/gmd:aggregationInfo" mode="no-namespaces"/>
 				<!-- elements from MD_DataIdentification -->
-				<xsl:apply-templates select="$inputInfo/gmd:spatialRepresentationType"
-					mode="no-namespaces"/>
+				<xsl:apply-templates select="$inputInfo/gmd:spatialRepresentationType" mode="no-namespaces"/>
 				<xsl:apply-templates select="$inputInfo/gmd:spatialResolution" mode="no-namespaces"/>
 				<xsl:apply-templates select="$inputInfo/gmd:language" mode="no-namespaces"/>
 				<!-- characterSet defaults to UTF-8 if no character set is specified -->
 				<xsl:choose>
 					<xsl:when test="$inputInfo/gmd:characterSet">
-						<xsl:apply-templates select="$inputInfo/gmd:characterSet"
-							mode="no-namespaces"/>
+						<xsl:apply-templates select="$inputInfo/gmd:characterSet" mode="no-namespaces"/>
 					</xsl:when>
 					<xsl:otherwise>
 						<gmd:characterSet>
@@ -864,12 +942,14 @@ updated 11/19/2010 correct
 								codeListValue="utf8">UTF-8</gmd:MD_CharacterSetCode>
 						</gmd:characterSet>
 					</xsl:otherwise>
-				</xsl:choose>
+				</xsl:choose> 
+				
+		<!-- topicCategory handler -->
 				<xsl:choose>
 					<xsl:when test="$inputInfo/gmd:topicCategory/gmd:MD_TopicCategoryCode">
-						<xsl:apply-templates select="$inputInfo/gmd:topicCategory"
-							mode="no-namespaces"/>
+						<xsl:apply-templates select="$inputInfo/gmd:topicCategory" mode="no-namespaces"/>
 					</xsl:when>
+					<!-- check to see if any keywords match any of the topicCategoryCodes, use that if so -->
 					<xsl:when test="//*[local-name() = 'keyword']/*[contains('farming, biota, boundaries, climatologyMeteorologyAtmosphere, economy, elevation, environment, geoscientificInformation, health, imageryBaseMapsEarthCover, intelligenceMilitary, inlandWaters, location, oceans, planningCadastre, society, structure, transportation, utilitiesCommunication, ', 
 						concat(normalize-space(string(.)),', '))]">
 						<xsl:for-each select="//*[local-name() = 'keyword']/*">
@@ -914,7 +994,7 @@ updated 11/19/2010 correct
 				</xsl:choose>
 				<xsl:apply-templates select="$inputInfo/gmd:environmentDescription"
 					mode="no-namespaces"/>
-				<!-- Get all the extent information. Have to make sure temporal extent gml:timePeriod is used and has gml:id   -->
+	<!-- Get all the extent information. Have to make sure temporal extent gml:timePeriod is used and has gml:id   -->
 				<xsl:for-each select="$inputInfo/gmd:extent">
 					<gmd:extent>
 						<gmd:EX_Extent>
@@ -938,28 +1018,50 @@ updated 11/19/2010 correct
 		<gmd:CI_Citation>
 			<gmd:title>
 				<gco:CharacterString>
-					<xsl:value-of select="$inputCit/gmd:title/gco:CharacterString"/>
+					<xsl:value-of select="normalize-space(string($inputCit/gmd:title/gco:CharacterString))"/>
 				</gco:CharacterString>
 			</gmd:title>
-			<!-- Keeping the title from being indented correctly-->
+			<!-- USGIN profile: DateType specifies the event used for the temporal aspect of the resource, 
+				and must be a value from the list {creation, publication, revision},  insert empty value if
+			missing -->
+			<xsl:choose>
+				<xsl:when test="$inputCit/gmd:date[descendant::*[contains('publication creation revision',@codeListValue)]]">
+				<!-- do nothing-->
+				</xsl:when>
+				<xsl:otherwise>
+					<gmd:date>
+						<gmd:CI_Date>
+							<gmd:date gco:nilReason="missing"/>
+							<gmd:dateType>
+								<gmd:CI_DateTypeCode
+									codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
+									codeListValue="publication">publication</gmd:CI_DateTypeCode>
+							</gmd:dateType>
+						</gmd:CI_Date>
+					</gmd:date>
+				</xsl:otherwise>
+			</xsl:choose>
+			<xsl:for-each select="$inputCit/gmd:date">
 			<gmd:date>
 				<gmd:CI_Date>
 					<gmd:date>
 						<gco:DateTime>
 							<xsl:call-template name="usgin:dateFormat">
 								<xsl:with-param name="inputDate"
-									select="string($inputCit/gmd:date/gmd:CI_Date/gmd:date/*)"/>
+									select="normalize-space(string($inputCit/gmd:date/gmd:CI_Date/gmd:date/*))"/>
 							</xsl:call-template>
 						</gco:DateTime>
 					</gmd:date>
-					<gmd:dateType>
+					<xsl:apply-templates select=".//gmd:dateType" mode="no-namespaces"/>
+					<!--<gmd:dateType>
 						<gmd:CI_DateTypeCode
 							codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
 							codeListValue="publication">publication</gmd:CI_DateTypeCode>
-					</gmd:dateType>
+					</gmd:dateType>-->
 				</gmd:CI_Date>
 			</gmd:date>
-
+			</xsl:for-each>
+			
 			<xsl:apply-templates select="$inputCit/gmd:edition" mode="no-namespaces"/>
 
 			<xsl:apply-templates select="$inputCit/gmd:editionDate" mode="no-namespaces"/>
@@ -979,24 +1081,19 @@ updated 11/19/2010 correct
 										<gmd:authority>
 											<gmd:CI_Citation>
 												<gmd:title>
-												<gco:CharacterString>
-												<xsl:value-of
-												select="concat('transform from gmx:Anchor with title: ', gmd:MD_Identifier/gmd:code/gmx:Anchor/@xlink:title)"
-												/>
-												</gco:CharacterString>
+													<gco:CharacterString>
+														<xsl:value-of select="concat('transform from gmx:Anchor with title: ', gmd:MD_Identifier/gmd:code/gmx:Anchor/@xlink:title)"/>
+													</gco:CharacterString>
 												</gmd:title>
 												<gmd:date gco:nilReason="not applicable"/>
 											</gmd:CI_Citation>
 										</gmd:authority>
-
 									</xsl:otherwise>
 								</xsl:choose>
 								<gmd:code>
 									<!--		<gmx:Anchor xlink:href="http://dx.doi.org/10.7289/V5154F01" xlink:title="DOI" xlink:actuate="onRequest">doi:10.7289/V5154F01</gmx:Anchor>  -->
 									<gco:CharacterString>
-										<xsl:value-of
-											select="gmd:MD_Identifier/gmd:code/gmx:Anchor/@xlink:href"
-										/>
+										<xsl:value-of	select="gmd:MD_Identifier/gmd:code/gmx:Anchor/@xlink:href"/>
 									</gco:CharacterString>
 								</gmd:code>
 							</gmd:MD_Identifier>
@@ -1008,23 +1105,15 @@ updated 11/19/2010 correct
 					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:for-each>
+			
+			<!-- responsibleParty is mandatory with role CI_RoleCode@codeListValue one of 
+				{originator, principalInvestigator, processor, author}. 
+				This element identifies the agent responsible for the intellectual content of the described resource.  -->
 			<!-- for each statement allows more than one contact to be processed -->
 			<xsl:choose>
-				<xsl:when test="$inputCit/gmd:citedResponsibleParty">
-					<xsl:for-each select="$inputCit/gmd:citedResponsibleParty">
-						<gmd:citedResponsibleParty>
-							<xsl:call-template name="usgin:ResponsibleParty">
-								<xsl:with-param name="inputParty" select="gmd:CI_ResponsibleParty"/>
-								<xsl:with-param name="defaultRole">
-									<gmd:role>
-										<gmd:CI_RoleCode
-											codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode"
-											codeListValue="originator">originator</gmd:CI_RoleCode>
-									</gmd:role>
-								</xsl:with-param>
-							</xsl:call-template>
-						</gmd:citedResponsibleParty>
-					</xsl:for-each>
+				<xsl:when test="$inputCit/gmd:citedResponsibleParty
+					[descendant::*[contains('originator principalInvestigator processor author',@codeListValue)]]">
+					<!-- do nothing-->
 				</xsl:when>
 				<xsl:otherwise>
 					<!-- no responsible party reported, put in minimal missing element -->
@@ -1047,12 +1136,29 @@ updated 11/19/2010 correct
 							<gmd:role>
 								<gmd:CI_RoleCode
 									codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode"
-									codeListValue="originator">originatory</gmd:CI_RoleCode>
+									codeListValue="originator">originator</gmd:CI_RoleCode>
 							</gmd:role>
 						</gmd:CI_ResponsibleParty>
 					</gmd:citedResponsibleParty>
 				</xsl:otherwise>
 			</xsl:choose>
+			
+			<xsl:for-each select="$inputCit/gmd:citedResponsibleParty">
+				<gmd:citedResponsibleParty>
+					<xsl:call-template name="usgin:ResponsibleParty">
+						<xsl:with-param name="inputParty" select="gmd:CI_ResponsibleParty"/>
+						<xsl:with-param name="defaultRole">
+							<gmd:role>
+								<gmd:CI_RoleCode
+									codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode"
+									codeListValue="originator">originator</gmd:CI_RoleCode>
+							</gmd:role>
+						</xsl:with-param>
+					</xsl:call-template>
+				</gmd:citedResponsibleParty>
+			</xsl:for-each>
+			
+			
 			<xsl:apply-templates select="$inputCit/gmd:presentationForm" mode="no-namespaces"/>
 			<xsl:apply-templates select="$inputCit/gmd:series" mode="no-namespaces"/>
 			<xsl:apply-templates select="$inputCit/gmd:otherCitationDetails" mode="no-namespaces"/>
@@ -1475,31 +1581,23 @@ updated 11/19/2010 correct
 										<gmd:CI_OnlineResource>
 											<gmd:linkage>
 												<gmd:URL>
-												<xsl:value-of
-												select="string(srv:connectPoint/gmd:CI_OnlineResource/gmd:linkage/gmd:URL)"
-												/>
+													<xsl:value-of select="string(srv:connectPoint/gmd:CI_OnlineResource/gmd:linkage/gmd:URL)"/>
 												</gmd:URL>
 											</gmd:linkage>
 											<gmd:protocol>
 												<gco:CharacterString>
-												<xsl:value-of
-												select="normalize-space(string(ancestor::srv:SV_ServiceIdentification/srv:serviceType))"
-												/>
+													<xsl:value-of select="normalize-space(string(ancestor::srv:SV_ServiceIdentification/srv:serviceType))" />
 												</gco:CharacterString>
 											</gmd:protocol>
 
 											<gmd:applicationProfile>
 												<gco:CharacterString>
 												<xsl:if test="string-length(string(srv:DCP)) > 0">
-												<xsl:value-of
-												select="concat('DCP:', normalize-space(string(srv:DCP)), ': ')"
-												/>
+													<xsl:value-of select="concat('DCP:', normalize-space(string(srv:DCP)), ': ')"/>
 												</xsl:if>
-												<xsl:if
-												test="srv:connectPoint/gmd:CI_OnlineResource/gmd:applicationProfile"/>
-												<xsl:value-of
-												select="srv:connectPoint/gmd:CI_OnlineResource/gmd:applicationProfile/gco:CharacterString"
-												/>
+												<xsl:if test="srv:connectPoint/gmd:CI_OnlineResource/gmd:applicationProfile">
+													<xsl:value-of select="srv:connectPoint/gmd:CI_OnlineResource/gmd:applicationProfile/gco:CharacterString" />
+												</xsl:if>
 												</gco:CharacterString>
 											</gmd:applicationProfile>
 
