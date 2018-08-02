@@ -552,13 +552,13 @@ updated 11/19/2010 correct
 			
 			<!-- only one metadata maintenance element is allowed, so have to merge with what's in source -->
 			<!-- set context -->
-			<xsl:for-each select = "$var_InputRootNode/gmd:metadataMaintenance/gmd:MD_MaintenanceInformation">
+			<xsl:variable name="metamainroot" select = "$var_InputRootNode/gmd:metadataMaintenance/gmd:MD_MaintenanceInformation"/>
 				<gmd:metadataMaintenance>
 					<gmd:MD_MaintenanceInformation>
 						<xsl:choose>
-							<xsl:when test="gmd:maintenanceAndUpdateFrequency">
+							<xsl:when test="$metamainroot/gmd:maintenanceAndUpdateFrequency">
 								<!--   <xsl:copy-of select="$var_InputRootNode/gmd:metadataMaintenance/gmd:MD_MaintenanceInformation/gmd:maintenanceAndUpdateFrequency"/>-->
-								<xsl:apply-templates select="gmd:maintenanceAndUpdateFrequency" mode="no-namespaces"/>
+								<xsl:apply-templates select="$metamainroot/gmd:maintenanceAndUpdateFrequency" mode="no-namespaces"/>
 							</xsl:when>
 							<xsl:otherwise>
 								<gmd:maintenanceAndUpdateFrequency>
@@ -571,15 +571,15 @@ updated 11/19/2010 correct
 							</xsl:otherwise>
 						</xsl:choose>
 	
-						<xsl:apply-templates select="gmd:dateOfNextUpdate" mode="no-namespaces"/>
+						<xsl:apply-templates select="$metamainroot/gmd:dateOfNextUpdate" mode="no-namespaces"/>
 	
-						<xsl:apply-templates select="gmd:userDefinedMaintenanceFrequency" mode="no-namespaces"/>
+						<xsl:apply-templates select="$metamainroot/gmd:userDefinedMaintenanceFrequency" mode="no-namespaces"/>
 	
-						<xsl:apply-templates select="gmd:updateScope" mode="no-namespaces"/>
+						<xsl:apply-templates select="$metamainroot/gmd:updateScope" mode="no-namespaces"/>
 	
-						<xsl:apply-templates select="gmd:updateScopeDescription" mode="no-namespaces"/>
+						<xsl:apply-templates select="$metamainroot/gmd:updateScopeDescription" mode="no-namespaces"/>
 	
-						<xsl:apply-templates select="gmd:maintenanceNote" mode="no-namespaces"/>
+						<xsl:apply-templates select="$metamainroot/gmd:maintenanceNote" mode="no-namespaces"/>
 						<!-- add a note that the record has been processed by this xslt; variable is defined at top of 
 						this document -->
 						<gmd:maintenanceNote>
@@ -597,7 +597,7 @@ updated 11/19/2010 correct
 							</gco:CharacterString>
 						</gmd:maintenanceNote>
 	
-						<xsl:apply-templates select="gmd:contact" mode="no-namespaces"/>
+						<xsl:apply-templates select="$metamainroot/gmd:contact" mode="no-namespaces"/>
 						<!-- add USGIN maintenance contact -->
 						<gmd:contact>
 							<xsl:if test="$maintenanceContactID != ''">
@@ -633,7 +633,7 @@ updated 11/19/2010 correct
 						</gmd:contact>
 					</gmd:MD_MaintenanceInformation>
 				</gmd:metadataMaintenance>
-			</xsl:for-each>
+			
 			
 		</gmd:MD_Metadata>
 	</xsl:template>
