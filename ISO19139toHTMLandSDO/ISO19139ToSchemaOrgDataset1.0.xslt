@@ -23,6 +23,7 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
     
     2018-05-01 version 1.1 update spatialCoverage handling.  Only transforms geographicIdentifier,
     gml:polygon/gml:Point, and gmd:geographicBounding box; other gml geometries are ignored. 
+    2018-07-17  version 1.1.1  Fix problem with comma insertion in SpatialExtent
  -->
 
     <xsl:output method="text" indent="yes" encoding="UTF-8"/>
@@ -30,8 +31,8 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
     <xsl:variable name="uppercase" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'"/>
     <xsl:variable name="authorRoles" select="'editor,coAuthor,author,orginator'"/>
 
-<!--    <xsl:template match="//gmd:MD_Metadata | gmi:MI_Metadata">--> 
-       <xsl:template name="iso2sdo">
+   <!-- <xsl:template match="//gmd:MD_Metadata | gmi:MI_Metadata"> -->
+      <xsl:template name="iso2sdo">
            <xsl:param name="isopath"/>
         <!-- Define variables for content elements -->
         <xsl:variable name="additionalContexts">
@@ -793,15 +794,16 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
                     <xsl:value-of
                         select="normalize-space(gmd:EX_Extent/gmd:description/gco:CharacterString)"/>
                     <xsl:text>"</xsl:text>
-                </xsl:if>
-
-                <xsl:if
-                    test="
+                    <xsl:if
+                        test="
                         *//gmd:EX_GeographicDescription//gmd:code/gco:CharacterString or
                         *//gmd:geographicElement/gmd:EX_BoundingPolygon[count(descendant::*[local-name() = 'polygon']/*[local-name() = 'Point']) > 0]
                         or *//gmd:geographicElement/gmd:EX_GeographicBoundingBox">
-                    <xsl:text>,&#10;</xsl:text>
+                        <xsl:text>,&#10;</xsl:text>
+                    </xsl:if>
                 </xsl:if>
+
+
                 <!-- geographicIdentifiers in array of alternateNames -->
                 <xsl:if
                     test="*//gmd:geographicElement/gmd:EX_GeographicDescription//gmd:code/gco:CharacterString">
