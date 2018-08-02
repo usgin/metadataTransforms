@@ -1,17 +1,31 @@
 <?xml version="1.0"?>
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gco="http://www.isotc211.org/2005/gco"
-    xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:xlink="http://www.w3.org/1999/xlink"
-    xmlns:datetime="http://exslt.org/dates-and-times" xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ows="http://www.opengis.net/ows"
+<xsl:stylesheet version="1.0" 
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:gmd="http://www.isotc211.org/2005/gmd" 
+    xmlns:gco="http://www.isotc211.org/2005/gco"
+    xmlns:gml="http://www.opengis.net/gml/3.2" 
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:datetime="http://exslt.org/dates-and-times"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:ows="http://www.opengis.net/ows"
+    xmlns:dct="http://purl.org/dc/terms/" 
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:dcmiBox="http://dublincore.org/documents/2000/07/11/dcmi-box/"
     exclude-result-prefixes="datetime">
     <xsl:output method="xml" encoding="utf-8" omit-xml-declaration="no" indent="yes"/>
     <!-- 
 	
 	SMR 2018-04-06 
 	Version 1.0 2018-04-25
-	revise dataCiteToISO19139.v3.2.xslt to work with qualified DC 	-->
-    <!--  * @copyright    2018 Stephen M Richard. 
+	Transform qualified DC XML metadata to ISO 19139
+    
+    Version 1.0.1 2018-07-25
+       update handling of @scheme or @dct:scheme on dct:references to populate gmd:applicationProfile
+       in CI_OnlineResource elements. 
+       Change title handler to handle only first dc:title if there are >1 titles.
+    -->
+    <!--  * @copyright 2018 Stephen M Richard. 
 	        All Rights Reserved.
  *          Licensed under the Apache License, Version 2.0 (the "License"); 
             you may not use this file except in compliance with the License. 
@@ -20,8 +34,8 @@
  *  Unless required by applicable law or agreed to in writing, software distributed under the License is 
     distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
     See the License for the specific language governing permissions and limitations under the License -->
-    <!-- The contact for the metadata - static value; customize for your
-		application.  -->
+   
+    <!-- The contact for the metadata - static value; customize for your application.  -->
     <xsl:template name="metadatacontact">
         <gmd:contact>
             <gmd:CI_ResponsibleParty>
@@ -50,10 +64,12 @@
             </gmd:CI_ResponsibleParty>
         </gmd:contact>
     </xsl:template>
+    
     <!-- define variables for top level elements in dc xml to simplify xpaths... -->
     <xsl:variable name="dc-identifier" select="//*[local-name() = 'identifier']"/>
-    <xsl:variable name="dc-titles">
-        <!-- make sure something gets put in the title -->
+    <xsl:variable name="dc-title">
+        <!-- make sure something gets put in the title, if there are multiple titles, only take the first -->
+        <!-- TBD if have multiple title elements, put others in alternate title -->
         <xsl:choose>
             <xsl:when test="string-length(//*[local-name() = 'title'][1])>0">
                 <xsl:value-of select="//*[local-name() = 'title'][1]"/>
@@ -116,7 +132,7 @@
                         </xsl:when>-->
                         <xsl:otherwise>
                             <xsl:value-of
-                                select="concat($fileIdentifierPrefix, string('metadata:'), normalize-space(translate($dc-titles[1], '/: ,', '----')))"
+                                select="concat($fileIdentifierPrefix, string('metadata:'), normalize-space(translate($dc-title, '/: ,', '----')))"
                             />
                         </xsl:otherwise>
                     </xsl:choose>
@@ -187,10 +203,7 @@
                         <gmd:CI_Citation>
                             <gmd:title>
                                 <gco:CharacterString>
-                                    <xsl:for-each select="$dc-titles">
-                                        <xsl:value-of select="normalize-space(string(.))"/>
-                                        <xsl:text>. </xsl:text>
-                                    </xsl:for-each>
+                                     <xsl:value-of select="normalize-space(string($dc-title))"/>
                                 </gco:CharacterString>
                             </gmd:title>
                             <xsl:for-each select="//*[local-name() = 'alternative']">
@@ -456,23 +469,26 @@
                                             <gmd:protocol>
                                                 <gco:CharacterString>WWW:LINK-1.0-http--link</gco:CharacterString>
                                             </gmd:protocol>
+                                            <xsl:if test="string-length(normalize-space(@scheme))>0 or 
+                                                    string-length(normalize-space(@dct:scheme))>0">
+                                                    <gmd:applicationProfile>
+                                                        <gco:CharacterString>
+                                                            <xsl:choose>
+                                                                <xsl:when test="string-length(normalize-space(@scheme))>0">
+                                                                    <xsl:value-of select="normalize-space(@scheme)"/>
+                                                                </xsl:when>
+                                                                <xsl:when test="string-length(normalize-space(@dct:scheme))>0">
+                                                                    <xsl:value-of select="normalize-space(@dct:scheme)"/>
+                                                                </xsl:when>
+                                                            </xsl:choose>
+                                                        </gco:CharacterString>
+                                                    </gmd:applicationProfile>
+                                                </xsl:if>
                                             <gmd:name>
-                                                <xsl:choose>
-                                                  <xsl:when test="@scheme">
-                                                  <gco:CharacterString>
-                                                  <xsl:value-of select="normalize-space(@scheme)"/>
-                                                  </gco:CharacterString>
-                                                  </xsl:when>
-                                                  <xsl:otherwise>
-                                                  <gco:CharacterString>Dublin Core references URL</gco:CharacterString>
-                                                  </xsl:otherwise>
-                                                </xsl:choose>
+                                                 <gco:CharacterString>Dublin Core references URL</gco:CharacterString>
                                             </gmd:name>
                                             <gmd:description>
-                                                <gco:CharacterString>
-                                                  <xsl:value-of
-                                                  select="normalize-space(string('URL provided in Dublin Core references element.'))"/>
-                                                </gco:CharacterString>
+                                                <gco:CharacterString>URL provided in Dublin Core references element</gco:CharacterString>
                                             </gmd:description>
                                             <gmd:function>
                                                 <gmd:CI_OnLineFunctionCode
