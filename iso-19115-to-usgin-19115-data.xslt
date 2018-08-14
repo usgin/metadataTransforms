@@ -16,7 +16,10 @@
 	<xsl:output method="xml" version="1.0" encoding="UTF-8" indent="yes"/>
 
 	<!--*************************************************************************************************** 
-*** This transform maps a generic ISO19139 XML metadata record to a record conforming 
+	
+***
+
+This transform maps a generic ISO19139 XML metadata record to a record conforming 
 	to the USGIN profile by adding appropriate missing values for required elements
 	 This style sheet converts ISO 19139 XML to ISO 19139 XML metadata that conforms with the USGIN 
 	 profile. See http://lab.usgin.org/profiles/usgin-iso-metadata-profile (http://lab.usgin.org/node/235)
@@ -81,10 +84,9 @@ updated 11/19/2010 correct
 
 		<gmd:MD_Metadata
 			xsi:schemaLocation="http://www.isotc211.org/2005/gmd http://schemas.opengis.net/csw/2.0.2/profiles/apiso/1.0.0/apiso.xsd"
-			xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:gml="http://www.opengis.net/gml"
+			xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:gml="http://www.opengis.net/gml/3.2"
 			xmlns:xlink="http://www.w3.org/1999/xlink"
 			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-
 			<gmd:fileIdentifier>
 				<gco:CharacterString>
 					<xsl:choose>
@@ -1026,7 +1028,26 @@ updated 11/19/2010 correct
 			missing -->
 			<xsl:choose>
 				<xsl:when test="$inputCit/gmd:date[descendant::*[contains('publication creation revision',@codeListValue)]]">
-				<!-- do nothing-->
+					<xsl:for-each select="$inputCit/gmd:date">
+						<gmd:date>
+							<gmd:CI_Date>
+								<gmd:date>
+									<gco:DateTime>
+										<xsl:call-template name="usgin:dateFormat">
+											<xsl:with-param name="inputDate"
+												select="normalize-space(string($inputCit/gmd:date/gmd:CI_Date/gmd:date/*))"/>
+										</xsl:call-template>
+									</gco:DateTime>
+								</gmd:date>
+								<xsl:apply-templates select=".//gmd:dateType" mode="no-namespaces"/>
+								<!--<gmd:dateType>
+						<gmd:CI_DateTypeCode
+							codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
+							codeListValue="publication">publication</gmd:CI_DateTypeCode>
+					</gmd:dateType>-->
+							</gmd:CI_Date>
+						</gmd:date>
+					</xsl:for-each>
 				</xsl:when>
 				<xsl:otherwise>
 					<gmd:date>
@@ -1041,26 +1062,6 @@ updated 11/19/2010 correct
 					</gmd:date>
 				</xsl:otherwise>
 			</xsl:choose>
-			<xsl:for-each select="$inputCit/gmd:date">
-			<gmd:date>
-				<gmd:CI_Date>
-					<gmd:date>
-						<gco:DateTime>
-							<xsl:call-template name="usgin:dateFormat">
-								<xsl:with-param name="inputDate"
-									select="normalize-space(string($inputCit/gmd:date/gmd:CI_Date/gmd:date/*))"/>
-							</xsl:call-template>
-						</gco:DateTime>
-					</gmd:date>
-					<xsl:apply-templates select=".//gmd:dateType" mode="no-namespaces"/>
-					<!--<gmd:dateType>
-						<gmd:CI_DateTypeCode
-							codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode"
-							codeListValue="publication">publication</gmd:CI_DateTypeCode>
-					</gmd:dateType>-->
-				</gmd:CI_Date>
-			</gmd:date>
-			</xsl:for-each>
 			
 			<xsl:apply-templates select="$inputCit/gmd:edition" mode="no-namespaces"/>
 
@@ -1632,6 +1633,9 @@ updated 11/19/2010 correct
 		<!-- input data should be either a string -->
 		<!-- USGIN mandates use of DateTime, so will need to add 'T12:00:00Z' to gco:Date string -->
 		<xsl:choose>
+			<xsl:when test="string-length(normalize-space(string($inputDate))) = 0">
+				<xsl:value-of select="string('1900-01-01T12:00:00Z')"/>
+			</xsl:when>
 			<xsl:when test="string-length(normalize-space(string($inputDate))) = 4">
 				<xsl:value-of
 					select="concat(normalize-space(translate(string($inputDate), '/', '-')), '-01-01T12:00:00Z')"
@@ -1682,8 +1686,9 @@ updated 11/19/2010 correct
 		<xsl:variable name="timelemname" select="name($timeelement/gmd:extent/*)"/>
 
 		<!-- get the prefix used for the gml elements; assume is same for all gml -->
-		<xsl:variable name="theprefix"
-			select="concat(substring-before(string($timelemname), ':'), ':')"/>
+<!--		<xsl:variable name="theprefix"
+			select="concat(substring-before(string($timelemname), ':'), ':')"/>-->
+		<xsl:variable name="theprefix"	select="string('gml32:')"/>
 
 		<!-- this gets used in the begin and end elements of the time period -->
 		<xsl:variable name="timeinstantname" select="concat($theprefix, string('TimeInstant'))"/>
@@ -1740,20 +1745,43 @@ updated 11/19/2010 correct
 								<xsl:for-each
 									select="$timeelement/gmd:extent/*[local-name() = 'TimePeriod']">
 									<!-- this is just to simplify the context -->
-									<xsl:apply-templates
-										select="*[local-name() = 'metaDataProperty']"
-										mode="no-namespaces"/>
-									<xsl:apply-templates select="*[local-name() = 'description']"
-										mode="no-namespaces"/>
-									<xsl:apply-templates
+									
+									<xsl:for-each select="*[local-name() = 'metaDataProperty']/*[local-name() = 'GenericMetaData']">	
+										<xsl:variable name="mdpname" select="concat($theprefix, 'metaDataProperty')"/>
+										<xsl:variable name="gmdname" select="concat($theprefix, 'GenericMetaData')"/>
+										<xsl:element name="{$mdpname}">
+											<xsl:element name="{$gmdname}">
+											<xsl:apply-templates
+												select="child::*"
+												mode="no-namespaces"/>
+											</xsl:element>
+										</xsl:element>
+									</xsl:for-each>
+									<xsl:for-each select="*[local-name() = 'description']">	
+										<xsl:variable name="descname" select="concat($theprefix, 'description')"/>
+										<xsl:element name="{$descname}">
+											<xsl:value-of select="string(.)"/>
+										</xsl:element>
+									</xsl:for-each>
+<!--			don't handle for now						<xsl:apply-templates
 										select="*[local-name() = 'descriptionReference']"
-										mode="no-namespaces"/>
-									<xsl:apply-templates select="*[local-name() = 'identifier']"
-										mode="no-namespaces"/>
-									<xsl:apply-templates select="*[local-name() = 'name']"
-										mode="no-namespaces"/>
+										mode="no-namespaces"/>-->
+									<xsl:for-each select="*[local-name() = 'identifier']">	
+										<xsl:variable name="idname" select="concat($theprefix, 'identifier')"/>
+										<xsl:element name="{$idname}">
+											<xsl:apply-templates select="@*" mode="no-namespaces"/>
+											<xsl:apply-templates select="./node()" mode="no-namespaces"/>
+										</xsl:element>
+									</xsl:for-each>
+									<xsl:for-each select="*[local-name() = 'name']">	
+										<xsl:variable name="namename" select="concat($theprefix, 'name')"/>
+										<xsl:element name="{$namename}">
+											<xsl:value-of select="string(.)"/>
+										</xsl:element>
+									</xsl:for-each>
+<!-- don't handle for now
 									<xsl:apply-templates select="*[local-name() = 'relatedTime']"
-										mode="no-namespaces"/>
+										mode="no-namespaces"/> -->
 								</xsl:for-each>
 								<!-- add a name value if the TimePeriod is converted from a TimeInstant as a convience for processors -->
 								<xsl:if
