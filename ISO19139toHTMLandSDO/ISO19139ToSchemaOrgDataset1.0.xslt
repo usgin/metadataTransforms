@@ -24,16 +24,25 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
     2018-05-01 version 1.1 update spatialCoverage handling.  Only transforms geographicIdentifier,
     gml:polygon/gml:Point, and gmd:geographicBounding box; other gml geometries are ignored. 
     2018-07-17  version 1.1.1  Fix problem with comma insertion in SpatialExtent
+    2018-08-30  Fix problem with identifier strings that include reserve characters; if its not an
+          http URI, then replace all the special characters with '.'   Also fix problem with quotes in 
+          legal restriction statements.
  -->
 
     <xsl:output method="text" indent="yes" encoding="UTF-8"/>
     <xsl:variable name="smallcase" select="'abcdefghijklmnopqrstuvwxyz'"/>
     <xsl:variable name="uppercase" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'"/>
+    <xsl:variable name="numbers" select="'0123456789'"/>
+    <xsl:variable name="otherchar" select="'.;/?@=$-_+!*(),'"/>
+    <xsl:variable name="allowedsymbols"
+        select="concat($uppercase, $smallcase, $numbers, $otherchar)"/>
+
+
     <xsl:variable name="authorRoles" select="'editor,coAuthor,author,orginator'"/>
 
-   <!-- <xsl:template match="//gmd:MD_Metadata | gmi:MI_Metadata"> -->
-      <xsl:template name="iso2sdo">
-           <xsl:param name="isopath"/>
+ <!--   <xsl:template match="//gmd:MD_Metadata | gmi:MI_Metadata">-->
+        <xsl:template name="iso2sdo">
+        <xsl:param name="isopath"/>
         <!-- Define variables for content elements -->
         <xsl:variable name="additionalContexts">
             <xsl:text>"datacite": "http://purl.org/spar/datacite/",&#10;
@@ -45,129 +54,146 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
         </xsl:variable>
         <xsl:variable name="datasetURI">
             <!-- single unique identifier string for @id property -->
-            <xsl:choose>
-                <!-- if there's a datasetURI (apiso only...) use that -->
-                <xsl:when
-                    test="string-length(normalize-space(//gmd:dataSetURI/gco:CharacterString)) > 0">
-                    <xsl:value-of select="normalize-space(//gmd:dataSetURI/gco:CharacterString)"/>
-                </xsl:when>
-                <!-- then look for identifier in citation section -->
-                <xsl:when test="//gmd:citation//gmd:identifier">
-                    <xsl:choose>
-                        <!-- if an http URI is provided as a citation identifier, use that (take the first if there is > 1) -->
-                        <xsl:when
-                            test="
-                                starts-with(//gmd:citation//gmd:identifier//gmd:code/gco:CharacterString, 'http') or
-                                starts-with(//gmd:citation//gmd:identifier//gmd:code/gco:CharacterString, 'HTTP')">
-                            <xsl:value-of
-                                select="normalize-space((//gmd:citation//gmd:identifier//gmd:code[starts-with(translate(gco:CharacterString, 'HTTP', 'http'), 'http')]/gco:CharacterString)[1])"
-                            />
-                        </xsl:when>
-                        <xsl:when
-                            test="starts-with(//gmd:citation//gmd:identifier//gmd:code/gco:CharacterString, 'DOI:')">
-                            <xsl:variable name="id1">
+            <xsl:variable name="candidate">
+                <xsl:choose>
+                    <!-- if there's a datasetURI (apiso only...) use that -->
+                    <xsl:when
+                        test="string-length(normalize-space(//gmd:dataSetURI/gco:CharacterString)) > 0">
+                        <xsl:value-of select="normalize-space(//gmd:dataSetURI/gco:CharacterString)"
+                        />
+                    </xsl:when>
+                    <!-- then look for identifier in citation section -->
+                    <xsl:when test="//gmd:citation//gmd:identifier">
+                        <xsl:choose>
+                            <!-- if an http URI is provided as a citation identifier, use that (take the first if there is > 1) -->
+                            <xsl:when
+                                test="
+                                    starts-with(//gmd:citation//gmd:identifier//gmd:code/gco:CharacterString, 'http') or
+                                    starts-with(//gmd:citation//gmd:identifier//gmd:code/gco:CharacterString, 'HTTP')">
                                 <xsl:value-of
-                                    select="(//gmd:citation//gmd:identifier//gmd:code[starts-with(gco:CharacterString, 'DOI:')]/gco:CharacterString)[1]"
+                                    select="normalize-space((//gmd:citation//gmd:identifier//gmd:code[starts-with(translate(gco:CharacterString, 'HTTP', 'http'), 'http')]/gco:CharacterString)[1])"
                                 />
-                            </xsl:variable>
-                            <xsl:value-of
-                                select="concat(string('http://doi.org/'), normalize-space(substring-after($id1, 'DOI:')))"
-                            />
-                        </xsl:when>
-                        <xsl:when
-                            test="starts-with(//gmd:citation//gmd:identifier//gmd:code/gco:CharacterString, 'doi:')">
-                            <!-- identifier is a doi (lower-case prefix), not as an HTTP URI -->
-                            <xsl:variable name="id2">
+                            </xsl:when>
+                            <xsl:when
+                                test="starts-with(//gmd:citation//gmd:identifier//gmd:code/gco:CharacterString, 'DOI:')">
+                                <xsl:variable name="id1">
+                                    <xsl:value-of
+                                        select="(//gmd:citation//gmd:identifier//gmd:code[starts-with(gco:CharacterString, 'DOI:')]/gco:CharacterString)[1]"
+                                    />
+                                </xsl:variable>
                                 <xsl:value-of
-                                    select="(//gmd:citation//gmd:identifier//gmd:code[starts-with(gco:CharacterString, 'doi:')]/gco:CharacterString)[1]"
+                                    select="concat(string('http://doi.org/'), normalize-space(substring-after($id1, 'DOI:')))"
                                 />
-                            </xsl:variable>
-                            <xsl:value-of
-                                select="concat(string('http://doi.org/'), normalize-space(substring-after($id2, 'doi:')))"
-                            />
-                        </xsl:when>
-                        <xsl:when
-                            test="
-                                contains(//gmd:citation//gmd:identifier//gmd:codespace/gco:CharacterString, 'DOI') or
-                                contains(//gmd:citation//gmd:identifier//gmd:codespace/gco:CharacterString, 'doi')">
-                            <!-- get the code that goes with the codespace -->
-                            <xsl:variable name="part2">
+                            </xsl:when>
+                            <xsl:when
+                                test="starts-with(//gmd:citation//gmd:identifier//gmd:code/gco:CharacterString, 'doi:')">
+                                <!-- identifier is a doi (lower-case prefix), not as an HTTP URI -->
+                                <xsl:variable name="id2">
+                                    <xsl:value-of
+                                        select="(//gmd:citation//gmd:identifier//gmd:code[starts-with(gco:CharacterString, 'doi:')]/gco:CharacterString)[1]"
+                                    />
+                                </xsl:variable>
                                 <xsl:value-of
-                                    select="(//gmd:citation//gmd:identifier//gmd:codeSpace[contains(translate(gco:CharacterString, 'DOI', 'doi'), 'doi')])[1]/preceding-sibling::gmd:code/gco:CharacterString"
+                                    select="concat(string('http://doi.org/'), normalize-space(substring-after($id2, 'doi:')))"
                                 />
-                            </xsl:variable>
-                            <!-- if code has doi: prefix strip it off -->
-                            <xsl:variable name="part3">
+                            </xsl:when>
+                            <xsl:when
+                                test="
+                                    contains(//gmd:citation//gmd:identifier//gmd:codespace/gco:CharacterString, 'DOI') or
+                                    contains(//gmd:citation//gmd:identifier//gmd:codespace/gco:CharacterString, 'doi')">
+                                <!-- get the code that goes with the codespace -->
+                                <xsl:variable name="part2">
+                                    <xsl:value-of
+                                        select="(//gmd:citation//gmd:identifier//gmd:codeSpace[contains(translate(gco:CharacterString, 'DOI', 'doi'), 'doi')])[1]/preceding-sibling::gmd:code/gco:CharacterString"
+                                    />
+                                </xsl:variable>
+                                <!-- if code has doi: prefix strip it off -->
+                                <xsl:variable name="part3">
+                                    <xsl:choose>
+                                        <xsl:when test="starts-with($part2, 'DOI:')">
+                                            <xsl:value-of select="substring-after($part2, 'DOI:')"/>
+                                        </xsl:when>
+                                        <xsl:when test="starts-with($part2, 'doi:')">
+                                            <xsl:value-of select="substring-after($part2, 'doi:')"/>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <xsl:value-of select="normalize-space($part2)"/>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:variable>
+                                <xsl:value-of select="concat(string('http://doi.org/'), $part3)"/>
+                            </xsl:when>
+                            <xsl:when
+                                test="
+                                    starts-with(//gmd:citation//gmd:identifier//gmd:codespace/gco:CharacterString, 'http') or
+                                    starts-with(//gmd:citation//gmd:identifier//gmd:codespace/gco:CharacterString, 'HTTP')">
+                                <xsl:variable name="part4">
+                                    <xsl:value-of
+                                        select="(//gmd:citation//gmd:identifier//gmd:codeSpace[starts-with(translate(gco:CharacterString, 'HTTP', 'http'), 'http')])[1]/gco:CharacterString"
+                                    />
+                                </xsl:variable>
+                                <xsl:variable name="part5">
+                                    <xsl:value-of
+                                        select="(//gmd:citation//gmd:identifier//gmd:codeSpace[starts-with(translate(gco:CharacterString, 'HTTP', 'http'), 'http')])[1]/preceding-sibling::gmd:code/gco:CharacterString"
+                                    />
+                                </xsl:variable>
+                                <!-- construct http uri from codespace and code -->
                                 <xsl:choose>
-                                    <xsl:when test="starts-with($part2, 'DOI:')">
-                                        <xsl:value-of select="substring-after($part2, 'DOI:')"/>
-                                    </xsl:when>
-                                    <xsl:when test="starts-with($part2, 'doi:')">
-                                        <xsl:value-of select="substring-after($part2, 'doi:')"/>
+                                    <xsl:when test="substring($part4, string-length($part4)) = '/'">
+                                        <!-- tests the last character of the string -->
+                                        <xsl:value-of select="concat($part4, $part5)"/>
                                     </xsl:when>
                                     <xsl:otherwise>
-                                        <xsl:value-of select="normalize-space($part2)"/>
+                                        <xsl:value-of select="concat($part4, '/', $part5)"/>
                                     </xsl:otherwise>
                                 </xsl:choose>
-                            </xsl:variable>
-                            <xsl:value-of select="concat(string('http://doi.org/'), $part3)"/>
-                        </xsl:when>
-                        <xsl:when
-                            test="
-                                starts-with(//gmd:citation//gmd:identifier//gmd:codespace/gco:CharacterString, 'http') or
-                                starts-with(//gmd:citation//gmd:identifier//gmd:codespace/gco:CharacterString, 'HTTP')">
-                            <xsl:variable name="part4">
-                                <xsl:value-of
-                                    select="(//gmd:citation//gmd:identifier//gmd:codeSpace[starts-with(translate(gco:CharacterString, 'HTTP', 'http'), 'http')])[1]/gco:CharacterString"
-                                />
-                            </xsl:variable>
-                            <xsl:variable name="part5">
-                                <xsl:value-of
-                                    select="(//gmd:citation//gmd:identifier//gmd:codeSpace[starts-with(translate(gco:CharacterString, 'HTTP', 'http'), 'http')])[1]/preceding-sibling::gmd:code/gco:CharacterString"
-                                />
-                            </xsl:variable>
-                            <!-- construct http uri from codespace and code -->
-                            <xsl:choose>
-                                <xsl:when test="substring($part4, string-length($part4)) = '/'">
-                                    <!-- tests the last character of the string -->
-                                    <xsl:value-of select="concat($part4, $part5)"/>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:value-of select="concat($part4, '/', $part5)"/>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <!-- concatenate the first codespace and code -->
-                            <xsl:variable name="part6">
-                                <xsl:value-of
-                                    select="(//gmd:citation//gmd:identifier)[1]//gmd:codeSpace/gco:CharacterString"
-                                />
-                            </xsl:variable>
-                            <xsl:variable name="part7">
-                                <xsl:value-of
-                                    select="(//gmd:citation//gmd:identifier[1])//gmd:code/gco:CharacterString"
-                                />
-                            </xsl:variable>
-                            <xsl:choose>
-                                <xsl:when test="string-length($part6) > 0">
-                                    <xsl:value-of select="concat($part6, '::', $part7)"/>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:value-of select="$part7"/>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:when>
-                <xsl:when test="string-length(//gmd:fileIdentifier/gco:CharacterString) > 0">
-                    <!-- take the fileIdentifier; schema only allows 1 value -->
-                    <xsl:value-of select="normalize-space(//gmd:fileIdentifier/gco:CharacterString)"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <!-- concatenate the first codespace and code -->
+                                <xsl:variable name="part6">
+                                    <xsl:value-of
+                                        select="(//gmd:citation//gmd:identifier)[1]//gmd:codeSpace/gco:CharacterString"
+                                    />
+                                </xsl:variable>
+                                <xsl:variable name="part7">
+                                    <xsl:value-of
+                                        select="(//gmd:citation//gmd:identifier[1])//gmd:code/gco:CharacterString"
+                                    />
+                                </xsl:variable>
+                                <xsl:choose>
+                                    <xsl:when test="string-length($part6) > 0">
+                                        <xsl:value-of select="concat($part6, '::', $part7)"/>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <xsl:value-of select="$part7"/>
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:when>
+                    <xsl:when test="string-length(//gmd:fileIdentifier/gco:CharacterString) > 0">
+                        <!-- take the fileIdentifier; schema only allows 1 value -->
+                        <xsl:value-of
+                            select="normalize-space(//gmd:fileIdentifier/gco:CharacterString)"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <!-- use the title... -->
+                        <xsl:value-of
+                            select="normalize-space(translate(//gmd:citation//gmd:title/gco:CharacterString, ' ', ''))"
+                        />
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
+            <xsl:choose>
+                <xsl:when test="starts-with(translate($candidate, $uppercase, $smallcase), 'http')">
+                    <xsl:value-of select="$candidate"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <!-- use the title... -->
                     <xsl:value-of
-                        select="normalize-space(translate(//gmd:citation//gmd:title/gco:CharacterString, ' ', ''))"/>
+                        select="
+                            concat('urn:', normalize-space(translate($candidate,
+                            translate($candidate, $allowedsymbols, ''), '')))"
+                    />
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
@@ -176,7 +202,13 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
             <xsl:if test="string-length(normalize-space(//gmd:dataSetURI/gco:CharacterString)) > 0">
                 <xsl:text> {&#10;            "@type": "PropertyValue",&#10;            "propertyID": </xsl:text>
                 <xsl:text>"gmd:datasetURI",&#10;            "value": "</xsl:text>
-                <xsl:value-of select="normalize-space(//gmd:dataSetURI/gco:CharacterString)"/>
+                <xsl:variable name="candidate3">
+                    <xsl:value-of select="normalize-space(//gmd:dataSetURI/gco:CharacterString)"/>
+                </xsl:variable>
+                <xsl:value-of
+                    select="
+                        concat('urn:', normalize-space(translate($candidate3,
+                        translate($candidate3, $allowedsymbols, ''), '')))"/>
                 <xsl:if test="contains(//gmd:dataSetURI/gco:CharacterString, 'http')">
                     <xsl:text>",&#10;            "url": "</xsl:text>
                     <xsl:value-of select="normalize-space(//gmd:dataSetURI/gco:CharacterString)"/>
@@ -203,7 +235,12 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
                     </xsl:choose>
                     <!-- close braces if no more identifier -->
                     <xsl:text>",&#10;            "value": "</xsl:text>
-                    <xsl:value-of select="normalize-space(*//gmd:code/gco:CharacterString)"/>
+                    <xsl:variable name="candidate4">
+                        <xsl:value-of select="normalize-space(*//gmd:code/gco:CharacterString)"/>
+                    </xsl:variable>
+                    <xsl:value-of
+                        select="concat('urn:', normalize-space(translate($candidate4,
+                                         translate($candidate4, $allowedsymbols, ''), '')))"/>
                     <xsl:if test="contains(*//gmd:code/gco:CharacterString, 'http')">
                         <xsl:text>",&#10;            "url": "</xsl:text>
                         <xsl:value-of select="normalize-space(*//gmd:code/gco:CharacterString)"/>
@@ -269,21 +306,24 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
                     select="gmd:citedResponsibleParty[(*//@codeListValue = 'author') or (*//@codeListValue = 'originator')]/gmd:CI_ResponsibleParty">
                     <xsl:choose>
                         <xsl:when
-                            test="string-length(normalize-space(gmd:individualName/gco:CharacterString)) > 0">
+                            test="string-length(normalize-space(gmd:individualName/gco:CharacterString)) > 0 
+                            and not(contains(gmd:individualName/gco:CharacterString,'REQUIRED:'))">
                             <xsl:value-of
                                 select="normalize-space(gmd:individualName/gco:CharacterString)"/>
                         </xsl:when>
                         <xsl:when
-                            test="string-length(normalize-space(gmd:organisationName/gco:CharacterString)) > 0">
+                            test="string-length(normalize-space(gmd:organisationName/gco:CharacterString)) > 0 
+                            and not(contains(gmd:organisationName/gco:CharacterString,'REQUIRED:'))">
                             <xsl:value-of
                                 select="normalize-space(gmd:organisationName/gco:CharacterString)"/>
                         </xsl:when>
                         <xsl:when
-                            test="string-length(normalize-space(gmd:positionName/gco:CharacterString)) > 0">
+                            test="string-length(normalize-space(gmd:positionName/gco:CharacterString)) > 0 
+                            and not(contains(gmd:positionName/gco:CharacterString,'REQUIRED:'))">
                             <xsl:value-of
                                 select="normalize-space(gmd:positionName/gco:CharacterString)"/>
                         </xsl:when>
-                        <xsl:otherwise>anonymous</xsl:otherwise>
+                        <xsl:otherwise>not provided</xsl:otherwise>
                     </xsl:choose>
 
                     <!--  <xsl:value-of select="normalize-space(gmd:individualName/gco:CharacterString)"/>-->
@@ -328,7 +368,8 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
 
                 <!-- get the publisher -->
                 <xsl:if
-                    test="string-length($publisher//gmd:organisationName/gco:CharacterString) > 0">
+                    test="string-length($publisher//gmd:organisationName/gco:CharacterString) > 0 
+                      and not(contains(gmd:organisationName/gco:CharacterString,'REQUIRED:'))">
                     <xsl:text>, </xsl:text>
                     <xsl:value-of
                         select="normalize-space($publisher//gmd:organisationName/gco:CharacterString)"
@@ -374,7 +415,17 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
                 </xsl:choose>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:variable name="description" select="normalize-space(//gmd:abstract[1]/gco:CharacterString)"/>
+        <xsl:variable name="description">
+            <xsl:choose>
+                <xsl:when test="starts-with(//gmd:abstract[1]/gco:CharacterString,'REQUIRED')">
+                    <xsl:value-of select="'no abstract provided'"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of   select="normalize-space(//gmd:abstract[1]/gco:CharacterString)"/>
+                </xsl:otherwise>
+            </xsl:choose>        
+        </xsl:variable>
+         
         <xsl:variable name="DataCatalogName"
             select="'Name of catalog source for record being transformed'"/>
         <xsl:variable name="DataCatalogURL" select="'not defined'"/>
@@ -510,8 +561,14 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
                             <xsl:text>.    </xsl:text>
                         </xsl:when>
                         <xsl:when test="string-length(gco:CharacterString) > 0">
-                            <xsl:value-of
-                                select="concat(normalize-space(gco:CharacterString), '.   ')"/>
+                            <xsl:variable name="thetext">
+                                <xsl:call-template name="string-replace-all">
+                                    <xsl:with-param name="text" select="normalize-space(gco:CharacterString)"/>
+                                    <xsl:with-param name="replace" select="string('&#34;')"/>
+                                    <xsl:with-param name="by" select="string('\&#34;')"/>
+                                </xsl:call-template>
+                            </xsl:variable>
+                            <xsl:value-of select="concat($thetext, '.   ')"/>
                         </xsl:when>
                     </xsl:choose>
                 </xsl:for-each>
@@ -634,28 +691,29 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
         
         The formatting template will take a single CI_OnlineResource node, a set of MD_Format nodes, and a set of CI_ResponsibleParty nodes
         -->
-        
+
         <!-- start with link to the full ISO metadata record for the resource; provisional, based on suggestion from
         Dave Vieglais, for DataOne harvest-->
-          <xsl:if test="$isopath">
-           <xsl:text>{
+        <xsl:if test="$isopath">
+            <xsl:text>{
            "@type": "DataDownload",
            "additionalType": "http://www.w3.org/ns/dcat#DataCatalog",
            "encodingFormat": "text/xml",
            "name": "ISO Metadata Document",
            "url": "</xsl:text>
-              
-           <xsl:value-of select="$isopath"/><xsl:text>"}</xsl:text>
-           
-           <xsl:if
-               test="
-               //gmd:transferOptions//gmd:onLine/gmd:CI_OnlineResource or
-               //gmd:distributorTransferOptions//gmd:onLine/gmd:CI_OnlineResource">
-               <xsl:text>,&#10;  </xsl:text>
-           </xsl:if>
-          </xsl:if>
-           
-           <xsl:for-each select="//gmd:transferOptions//gmd:onLine/gmd:CI_OnlineResource">
+
+            <xsl:value-of select="$isopath"/>
+            <xsl:text>"}</xsl:text>
+
+            <xsl:if
+                test="
+                    //gmd:transferOptions//gmd:onLine/gmd:CI_OnlineResource or
+                    //gmd:distributorTransferOptions//gmd:onLine/gmd:CI_OnlineResource">
+                <xsl:text>,&#10;  </xsl:text>
+            </xsl:if>
+        </xsl:if>
+
+        <xsl:for-each select="//gmd:transferOptions//gmd:onLine/gmd:CI_OnlineResource">
             <xsl:variable name="onlineResource" select="."/>
             <xsl:variable name="format"
                 select="*/ancestor::node()/preceding-sibling::gmd:distributionFormat/gmd:MD_Format"/>
@@ -796,9 +854,9 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
                     <xsl:text>"</xsl:text>
                     <xsl:if
                         test="
-                        *//gmd:EX_GeographicDescription//gmd:code/gco:CharacterString or
-                        *//gmd:geographicElement/gmd:EX_BoundingPolygon[count(descendant::*[local-name() = 'polygon']/*[local-name() = 'Point']) > 0]
-                        or *//gmd:geographicElement/gmd:EX_GeographicBoundingBox">
+                            *//gmd:EX_GeographicDescription//gmd:code/gco:CharacterString or
+                            *//gmd:geographicElement/gmd:EX_BoundingPolygon[count(descendant::*[local-name() = 'polygon']/*[local-name() = 'Point']) > 0]
+                            or *//gmd:geographicElement/gmd:EX_GeographicBoundingBox">
                         <xsl:text>,&#10;</xsl:text>
                     </xsl:if>
                 </xsl:if>
@@ -952,19 +1010,22 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
             </xsl:if>
         </xsl:variable>
         <xsl:variable name="personName">
-            <xsl:if test="string-length(gmd:individualName/gco:CharacterString) > 0">
+            <xsl:if test="string-length(gmd:individualName/gco:CharacterString) > 0 
+                and not(contains(gmd:individualName/gco:CharacterString,'REQUIRED:'))">
                 <xsl:value-of
                     select="normalize-space(string(gmd:individualName/gco:CharacterString))"/>
             </xsl:if>
         </xsl:variable>
         <xsl:variable name="organisationName">
-            <xsl:if test="string-length(gmd:organisationName/gco:CharacterString) > 0">
+            <xsl:if test="string-length(gmd:organisationName/gco:CharacterString) > 0 
+                and not(contains(gmd:organisationName/gco:CharacterString,'REQUIRED:'))">
                 <xsl:value-of
                     select="normalize-space(string(gmd:organisationName/gco:CharacterString))"/>
             </xsl:if>
         </xsl:variable>
         <xsl:variable name="agentRole">
-            <xsl:if test="string-length(normalize-space(gmd:positionName/gco:CharacterString)) > 0">
+            <xsl:if test="string-length(normalize-space(gmd:positionName/gco:CharacterString)) > 0 
+                and not(contains(gmd:positionName/gco:CharacterString,'REQUIRED:'))">
                 <xsl:value-of select="normalize-space(string(gmd:positionName/gco:CharacterString))"/>
                 <xsl:text>; </xsl:text>
             </xsl:if>
@@ -981,7 +1042,7 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
             </xsl:if>
         </xsl:variable>
         <xsl:variable name="agentemail">
-            <xsl:if test="count(gmd:contactInfo//gmd:electronicMailAddress/gco:CharacterString) > 0"
+            <xsl:if test="count(gmd:contactInfo//gmd:electronicMailAddress/gco:CharacterString[not(starts-with(.,'REQUIRED:'))]) > 0"
                 > [ </xsl:if>
             <xsl:for-each select="gmd:contactInfo//gmd:electronicMailAddress">
                 <xsl:if test="string-length(gco:CharacterString) > 0">
@@ -993,7 +1054,7 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
                     </xsl:if>
                 </xsl:if>
             </xsl:for-each>
-            <xsl:if test="count(gmd:contactInfo//gmd:electronicMailAddress/gco:CharacterString) > 0"
+            <xsl:if test="count(gmd:contactInfo//gmd:electronicMailAddress/gco:CharacterString[not(starts-with(.,'REQUIRED:'))]) > 0"
                 > ] </xsl:if>
         </xsl:variable>
 
@@ -1087,7 +1148,21 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
         <!--distributorContacts map to provider. 
             Formats to fileFormat,
         CI_onlineResurce.linkage.URL to URL, except if the CI_OnLineFunctionCode is 'download' then it maps to contentURL. -->
-        <xsl:variable name="accessURL" select="$por/gmd:linkage/gmd:URL"/>
+        <xsl:variable name="distIdentifier">
+            <xsl:variable name="candidate1" select="$por/gmd:linkage/gmd:URL"/>
+            <xsl:choose>
+                <xsl:when test="starts-with(translate($candidate1, $uppercase, $smallcase), 'http')">
+                    <xsl:value-of select="$candidate1"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of
+                        select="
+                            concat('urn:', normalize-space(translate($candidate1,
+                            translate($candidate1, $allowedsymbols, ''), '')))"
+                    />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
         <xsl:variable name="distFormat">
             <xsl:if test="count($pfor/gmd:name) > 1">
                 <xsl:text>[&#10;</xsl:text>
@@ -1122,7 +1197,17 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
             </xsl:if>
         </xsl:variable>
         <xsl:variable name="distPublishDate" select="''"/>
-        <xsl:variable name="distIdentifier" select="$por/gmd:linkage/gmd:URL"/>
+        <xsl:variable name="accessURL">
+            <xsl:variable name="candidate1" select="$por/gmd:linkage/gmd:URL"/>
+            <xsl:choose>
+                <xsl:when test="starts-with(translate($candidate1, $uppercase, $smallcase), 'http')">
+                    <xsl:value-of select="$candidate1"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="''"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
         <xsl:variable name="distProvider">
             <xsl:if test="count($prp/gmd:role) > 1">
                 <xsl:text>[&#10;</xsl:text>
@@ -1190,31 +1275,32 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
         </xsl:if>
 
         <xsl:text>    "@type": "DataDownload",&#10;    "additionalType": "dcat:distribution",&#10;</xsl:text>
+        <xsl:if test="$accessURL">
+            <xsl:text>      "dcat:accessURL": "</xsl:text>
+            <xsl:value-of select="$accessURL"/>
+            <xsl:text>",&#10;</xsl:text>
 
-        <xsl:text>      "dcat:accessURL": "</xsl:text>
-        <xsl:value-of select="$accessURL"/>
-        <xsl:text>",&#10;</xsl:text>
-
-        <xsl:text>      "url": "</xsl:text>
-        <xsl:value-of select="$accessURL"/>
-        <xsl:text>"</xsl:text>
-
+            <xsl:text>      "url": "</xsl:text>
+            <xsl:value-of select="$accessURL"/>
+            <xsl:text>"</xsl:text>
+        </xsl:if>
         <xsl:if test="string-length($distName) > 0">
             <xsl:text>,&#10;      "name": "</xsl:text>
             <xsl:value-of select="normalize-space($distName)"/>
+            <xsl:if test="string-length($accessURL) = 0">
+                <xsl:value-of
+                    select="'. Invalid URL provided in original metadata, see the @id string'"/>
+            </xsl:if>
             <xsl:text>"</xsl:text>
         </xsl:if>
         <xsl:if test="string-length($distDescription) > 0">
             <xsl:text>,&#10;      "description": </xsl:text>
             <xsl:value-of select="normalize-space($distDescription)"/>
         </xsl:if>
-
         <xsl:if test="string-length(string($distProvider)) > 0">
             <xsl:text>,&#10;      "provider": </xsl:text>
             <xsl:value-of select="$distProvider"/>
         </xsl:if>
-
-
         <xsl:if test="string-length($distFormat) > 0">
             <xsl:text>,&#10;      "fileFormat": </xsl:text>
             <xsl:value-of select="$distFormat"/>
