@@ -3,5 +3,5 @@
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     exclude-result-prefixes="xs"
     version="2.0">
-    <xsl:variable name="googlemapapikey">AIzaSyBhwynlqvaW_25pfNO1P2ME_GZXyS7OQQ0</xsl:variable>
+    <xsl:variable name="googlemapapikey">{your API key here}</xsl:variable>
 </xsl:stylesheet>
