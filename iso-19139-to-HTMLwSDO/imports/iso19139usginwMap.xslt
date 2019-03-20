@@ -15,6 +15,7 @@
 	 fix bad call for template to get metadata section inforamtion displayed -->
 	<!-- SMR add imports 2012-09-07 -->
 	<!-- SMR 2017-10-03 add test for gmi:MI_Metadata as root elemenent. Doesn't display any other gmi elements if present. -->
+	<!-- SMR 2018-12-15 update CharacterString Template to remove non-ascii characters. -->
 
 	<xsl:import href="generalwMap.xslt"/>
 	<xsl:import href="XML.xslt"/>
@@ -3789,10 +3790,26 @@
 
 	<!-- gco:CharacterString , gco:FreeText, gmx:Anchor -->
 	<xsl:template name="CharacterString">
+	
+		<!-- from https://stackoverflow.com/questions/34932344/xslt-to-remove-non-ascii 
+		This is a bit of a hack: it will work for as long as there are enough spaces in the $spaces variable to 
+		accommodate all the non-ascii characters found in the input. If you don't want to rely on such assumption, 
+		you will have to use the recursive template in 39432344 to replace them one-by-one 
+		the xsl:copy in the for-each below are from the template -->	
+		<xsl:variable name="ascii">!"#$%&amp;'()*+,-./0123456789:;=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~</xsl:variable>
+		<xsl:variable name="spaces" select="'                                                                                             '" />
+<!--		
+		<xsl:template match="input">
+			<xsl:copy>
+				<xsl:value-of select="translate(., translate(., $ascii, ''), $spaces)"/>
+			</xsl:copy>
+		</xsl:template>
+		-->
+		
 		<xsl:for-each select="*">
 			<xsl:choose>
 				<xsl:when test="local-name(.) = 'CharacterString'">
-					<xsl:value-of select="normalize-space(.)"/>
+					<xsl:value-of select="normalize-space(translate(., translate(., $ascii, ''), $spaces))"/>
 				</xsl:when>
 				<xsl:when test="local-name(.) = 'PT_FreeText'">
 					<!-- <b><xsl:value-of select="name(ancestor-or-self::*[2])" /></b> -->
@@ -3809,11 +3826,11 @@
 						<xsl:attribute name="href">
 							<xsl:value-of select="@xlink:href"/>
 						</xsl:attribute>
-						<xsl:value-of select="normalize-space(.)"/>
+						<xsl:value-of select="normalize-space(translate(., translate(., $ascii, ''), $spaces))"/>
 					</a>
 				</xsl:when>
 				<xsl:otherwise>
-					<xsl:value-of select="normalize-space(.)"/>
+					<xsl:value-of select="normalize-space(translate(., translate(., $ascii, ''), $spaces))"/>
 				</xsl:otherwise>
 			</xsl:choose>
 		</xsl:for-each>
