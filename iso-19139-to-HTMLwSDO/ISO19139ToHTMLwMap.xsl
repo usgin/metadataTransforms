@@ -29,8 +29,9 @@ iso19139usginwMap.xslt has handler (showMap template) to build the form and div 
   <xsl:import href = "ISO19139ToSchemaOrgDataset1.0.xslt" />
   <xsl:param name="isopath"></xsl:param>
   <xsl:param name="flowdirection"/>
-<!--  <xsl:output method="xml" indent="yes" encoding="UTF-8" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" />-->
-  <xsl:output method="html" indent="yes" encoding="UTF-8"/>
+<!--  <xsl:output method="xml" indent="yes" encoding="UTF-8" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" />
+-->  <!-- smr 2019-05-29 CHANGE TO xhtml -->
+  <xsl:output  method="xhtml" indent="yes" encoding="UTF-8"/>
   <xsl:variable name="iso19139" select="count(//*[(local-name() = 'MD_Metadata') or (local-name() = 'MI_Metadata')])>0 " />
 
   <xsl:template match="/">
