@@ -16,6 +16,8 @@
 	<!-- SMR add imports 2012-09-07 -->
 	<!-- SMR 2017-10-03 add test for gmi:MI_Metadata as root elemenent. Doesn't display any other gmi elements if present. -->
 	<!-- SMR 2018-12-15 update CharacterString Template to remove non-ascii characters. -->
+	<!-- SMR 2019-05-29 remove <pre> elements areound long characterStrings processed by CharacterString template; change output 
+		to xhtml.  Debugging Google search index problem with control characters (e.g. #128, #130, #126 in landing pages -->
 
 	<xsl:import href="generalwMap.xslt"/>
 	<xsl:import href="XML.xslt"/>
@@ -27,7 +29,8 @@
 <!--	<xsl:output method="xml" indent="yes" encoding="UTF-8"
 		doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN"
 		doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"/>-->
-	<xsl:output method="html" indent="yes" encoding="UTF-8"/>
+	<!-- smr 2019-05-29 CHANGE TO xhtml -->
+	<xsl:output method="xhtml" indent="yes" encoding="UTF-8" />
 	<xsl:template name="iso19139">
 		<xsl:param name="isopath"/>
 		<!--<xsl:value-of select="concat('path: ', $isopath)"/>-->
@@ -59,9 +62,13 @@
 		</div>
 		
 		<h1>
-			<xsl:value-of
-				select="//gmd:identificationInfo//gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString"
-			/>
+			<!--<xsl:value-of  select="//gmd:identificationInfo//gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString"/>
+-->
+			<xsl:for-each select="//gmd:identificationInfo//gmd:citation/gmd:CI_Citation/gmd:title">
+				<xsl:call-template name="CharacterString"/>
+				
+			</xsl:for-each>
+			
 		</h1>
 		
 		<!-- pick up spatial extent that is a point location, or a bounding box -->
@@ -594,10 +601,10 @@
 							<span class="element">Use limitation statement: </span>
 						</dt>
 						<dl>
-							<dd>
-								<pre class="wrap">
+							<dd class="wrap">
+								<!--<pre class="wrap">-->
 									<xsl:call-template name="CharacterString"/>
-								</pre>
+								<!--</pre>-->
 							</dd>
 						</dl>
 					</xsl:for-each>
@@ -640,10 +647,10 @@
 							<span class="element">Other Constraints</span>
 						</dt>
 						<dl>
-							<dd>
-								<pre class="wrap">
+							<dd class="wrap">
+								<!--<pre class="wrap">-->
 									<xsl:value-of select="."/>
-								</pre>
+								<!--</pre>-->
 							</dd>
 						</dl>
 					</xsl:for-each>
@@ -652,10 +659,10 @@
 							<span class="element">Other constraints</span>
 						</dt>
 						<dl>
-							<dd>
-								<pre class="wrap">
+							<dd class="wrap">
+								<!--<pre class="wrap">-->
 									<xsl:call-template name="CharacterString"/>
-								</pre>
+								<!--</pre>-->
 							</dd>
 						</dl>
 					</xsl:for-each>
@@ -664,10 +671,10 @@
 							<span class="element">Use Limitation</span>
 						</dt>
 						<dl>
-							<dd>
-								<pre class="wrap">
+							<dd class="wrap">
+								<!--<pre class="wrap">-->
 									<xsl:call-template name="CharacterString"/>
-								</pre>
+								<!--</pre>-->
 							</dd>
 						</dl>
 					</xsl:for-each>
@@ -721,10 +728,10 @@
 							<span class="element">Use Limitations</span>
 						</dt>
 						<dl>
-							<dd>
-								<pre class="wrap">
+							<dd class="wrap">
+								<!--<pre class="wrap">-->
 									<xsl:call-template name="CharacterString"/>
-								</pre>
+								<!--</pre>-->
 							</dd>
 						</dl>
 					</xsl:for-each>
@@ -791,10 +798,10 @@
 						<span class="element">Resource Abstract: </span>
 					</dt>
 					<dl>
-						<dd>
-							<pre class="wrap">
+						<dd class="wrap">
+							<!--<pre class="wrap">-->
 								<xsl:call-template name="CharacterString"/>
-							</pre>
+							<!--</pre>-->
 						</dd>
 					</dl>
 				</xsl:for-each>
@@ -826,10 +833,10 @@
 						<span class="element">purpose: </span>
 					</dt>
 					<dl>
-						<dd>
-							<pre class="wrap">
+						<dd class="wrap">
+							<!--<pre class="wrap">-->
 								<xsl:call-template name="CharacterString"/>
-							</pre>
+							<!--</pre>-->
 						</dd>
 					</dl>
 				</xsl:for-each>
@@ -927,10 +934,10 @@
 						<span class="element">Additional information on resource: </span>
 					</dt>
 					<dl>
-						<dd>
-							<pre class="wrap">
+						<dd class="wrap">
+							<!--<pre class="wrap">-->
 								<xsl:call-template name="CharacterString"/>
-							</pre>
+							<!--</pre>-->
 						</dd>
 					</dl>
 				</xsl:for-each>
@@ -939,10 +946,10 @@
 						<span class="element">Credits: </span>
 					</dt>
 					<dl>
-						<dd>
-							<pre class="wrap">
+						<dd class="wrap">
+							<!--<pre class="wrap">-->
 								<xsl:call-template name="CharacterString"/>
-							</pre>
+							<!--</pre>-->
 						</dd>
 					</dl>
 				</xsl:for-each>
@@ -2144,10 +2151,10 @@
 							<span class="element">Lineage statement </span>
 						</dt>
 						<dl>
-							<dd>
-								<pre class="wrap">
+							<dd class="wrap">
+								<!--<pre class="wrap">-->
 									<xsl:call-template name="CharacterString"/>
-								</pre>
+								<!--</pre>-->
 							</dd>
 						</dl>
 					</xsl:for-each>
@@ -2628,10 +2635,10 @@
 							<span class="element"> turnaround </span>
 						</dt>
 						<dl>
-							<dd>
-								<pre class="wrap">
+							<dd class="wrap">
+								<!--<pre class="wrap">-->
 									<xsl:call-template name="CharacterString"/>
-								</pre>
+								<!--</pre>-->
 							</dd>
 						</dl>
 					</xsl:for-each>
@@ -3248,10 +3255,10 @@
 							<span class="element"> contact Instructions </span>
 						</dt>
 						<dl>
-							<dd>
-								<pre class="wrap">
+							<dd class="wrap">
+								<!--<pre class="wrap">-->
 									<xsl:call-template name="CharacterString"/>
-								</pre>
+								<!--</pre>-->
 							</dd>
 						</dl>
 					</xsl:for-each>
@@ -3447,10 +3454,10 @@
 						<dt>
 							<span class="element"> Extent description</span>
 						</dt>
-						<dd>
-							<pre class="wrap">
+						<dd class="wrap">
+						<!--	<pre class="wrap">-->
 								<xsl:call-template name="CharacterString"/>
-							</pre>
+							<!--</pre>-->
 						</dd>
 					</xsl:for-each>
 					<xsl:if test="gmd:geographicElement">
@@ -3795,10 +3802,11 @@
 		This is a bit of a hack: it will work for as long as there are enough spaces in the $spaces variable to 
 		accommodate all the non-ascii characters found in the input. If you don't want to rely on such assumption, 
 		you will have to use the recursive template in 39432344 to replace them one-by-one 
-		the xsl:copy in the for-each below are from the template -->	
-		<xsl:variable name="ascii">!"#$%&amp;'()*+,-./0123456789:;=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~</xsl:variable>
+		the xsl:copy in the for-each below are from the template -->
+		<!-- SMR 2019-05-29 add escape sequence for '<' (&#60;) -->
+		<xsl:variable name="ascii">!"#$%&amp;'()*+,-./0123456789:;=>&#60;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~</xsl:variable>
 		<xsl:variable name="spaces" select="'                                                                                             '" />
-<!--		
+<!--		&#60;
 		<xsl:template match="input">
 			<xsl:copy>
 				<xsl:value-of select="translate(., translate(., $ascii, ''), $spaces)"/>
