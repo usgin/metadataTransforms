@@ -20,7 +20,8 @@ is done ISO19139usgin.xslt. Leave it here so nothing in Geoportal gets broken...
   <xsl:import href = "Imports\auxCountries.xslt" />
   <xsl:import href = "Imports\auxUCUM.xslt" />
   <xsl:import href = "ISO19139ToSchemaOrgDataset1.0.xslt"/>
-
+  <xsl:param name="isopath"></xsl:param>
+  
   <xsl:output method="xml" indent="yes" encoding="UTF-8" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" />
   
   <xsl:variable name="iso19139" select="count(//*[(local-name() = 'MD_Metadata') or (local-name() = 'MI_Metadata')])>0 " />
@@ -38,11 +39,15 @@ is done ISO19139usgin.xslt. Leave it here so nothing in Geoportal gets broken...
     <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
     <xsl:call-template name="styles" />
     <xsl:call-template name="scripts" />
+    
     <script type="application/ld+json">
       <xsl:text>&#10;</xsl:text>
-      <xsl:apply-templates select="//gmd:MD_Metadata | //gmi:MI_Metadata"/>
+      <xsl:call-template name="iso2sdo">
+        <xsl:with-param name="isopath" select="$isopath"/>
+      </xsl:call-template>
       <xsl:text>&#10;</xsl:text>
     </script>
+    
   </head>
 
   <body oncontextmenu="return true">

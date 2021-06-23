@@ -295,7 +295,8 @@
 </xsl:template>
   
 <!-- Template for elements with comment, pi and/or cdata children -->
-<xsl:template match="*[node()]">
+
+  <xsl:template match="*[node()]" >
   <div class="e">
   <div class="c"><a href="#" onclick="return false" onfocus="h()" class="b">-</a> <span class="m">&lt;</span><span><xsl:attribute name="class"><xsl:if test="xsl:*">x</xsl:if>t</xsl:attribute><xsl:value-of select="name()"/></span><xsl:apply-templates select="@*"/> <span class="m">&gt;</span></div>
   <div><xsl:apply-templates/>
@@ -305,7 +306,8 @@
 
 <!-- Template for elements with only text children -->
 <!-- ideally would also include test for cdata children, but no test for them -->
-<xsl:template match="*[text() and not(comment() or processing-instruction())]">
+  <!-- SMR 2021-06-23 add priority to handle ambiguous match -->
+  <xsl:template match="*[text() and not(comment() or processing-instruction())]" priority="5">
   <div class="e"><div style="margin-left:1em;text-indent:-2em">
   <span class="b">&#160;</span> <span class="m">&lt;</span><span><xsl:attribute name="class"><xsl:if test="xsl:*">x</xsl:if>t</xsl:attribute><xsl:value-of select="name()"/></span><xsl:apply-templates select="@*"/>
   <span class="m">&gt;</span><span class="tx"><xsl:value-of select="."/></span><span class="m">&lt;/</span><span><xsl:attribute name="class"><xsl:if test="xsl:*">x</xsl:if>t</xsl:attribute><xsl:value-of select="name()"/></span><span class="m">&gt;</span>

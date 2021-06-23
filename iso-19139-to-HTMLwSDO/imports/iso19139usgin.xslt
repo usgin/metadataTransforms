@@ -6,7 +6,8 @@
 	xmlns:gts="http://www.isotc211.org/2005/gts" 
 	xmlns:gml="http://www.opengis.net/gml" 
 	xmlns:res="http://www.esri.com/metadata/res/"  
-	xmlns:xlink="http://www.w3.org/1999/xlink">
+	xmlns:xlink="http://www.w3.org/1999/xlink" 
+	xmlns:sdn="http://www.seadatanet.org">
 
 	<!-- An XSLT template for displaying metadata that is stored in the ISO 19139 metadata format.
 
@@ -637,7 +638,7 @@
 	<!-- RESOURCE IDENTIFICATION -->
 	<!-- Resource Identification Information (B.2.2 MD_Identification - line23, including MD_DataIdentification - line36) -->
 	<!-- DTD doesn't account for data and service subclasses of MD_Identification -->
-	<xsl:template match="gmd:MD_DataIdentification | srv:SV_ServiceIdentification" mode="iso19139">
+	<xsl:template match="gmd:MD_DataIdentification | srv:SV_ServiceIdentification | sdn:SDN_DataIdentification" mode="iso19139">
 		<a>
 			<xsl:attribute name="name"><xsl:value-of select="generate-id(.)"/></xsl:attribute>
 			<xsl:attribute name="id"><xsl:value-of select="generate-id(.)"/></xsl:attribute>

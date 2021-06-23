@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:srv="http://www.isotc211.org/2005/srv" xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:gml="http://www.opengis.net/gml" xmlns:res="http://www.esri.com/metadata/res/">
+<xsl:stylesheet version="1.0" xmlns:sdn="http://www.seadatanet.org" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:srv="http://www.isotc211.org/2005/srv" xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:gml="http://www.opengis.net/gml" xmlns:res="http://www.esri.com/metadata/res/">
 	<!-- An XSLT template for displaying metadata that is stored in the ISO 19139 metadata format.
 
      Copyright (c) 2009-2010, Environmental Systems Research Institute, Inc. All rights reserved.
@@ -626,7 +626,7 @@
 	<!-- RESOURCE IDENTIFICATION -->
 	<!-- Resource Identification Information (B.2.2 MD_Identification - line23, including MD_DataIdentification - line36) -->
 	<!-- DTD doesn't account for data and service subclasses of MD_Identification -->
-	<xsl:template match="gmd:MD_DataIdentification | srv:SV_ServiceIdentification" mode="iso19139">
+	<xsl:template match="gmd:MD_DataIdentification | srv:SV_ServiceIdentification | sdn:SDN_DataIdentification" mode="iso19139">
 		<a>
 			<xsl:attribute name="name"><xsl:value-of select="generate-id(.)"/></xsl:attribute>
 			<xsl:attribute name="id"><xsl:value-of select="generate-id(.)"/></xsl:attribute>
