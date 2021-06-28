@@ -625,7 +625,7 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
 
         <!-- construct the JSON with xsl text elements. &#10; is carriage return -->
         <xsl:text>{&#10;  "@context": {&#10;</xsl:text>
-        <xsl:text> "@vocab": "http://schema.org/"</xsl:text>
+        <xsl:text> "@vocab": "https://schema.org/"</xsl:text>
         <xsl:if test="$additionalContexts and string-length($additionalContexts) > 0">
             <xsl:text>, &#10;</xsl:text>
             <xsl:value-of select="$additionalContexts"/>
