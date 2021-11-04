@@ -33,6 +33,9 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
     match (lines 50,51).	
 2018-12-13 updates to identify current version
 2019-05-29 add CharacterSTring template to remove control characters; apply to abstract
+2019-06-25 fix bounding box to put coordinates in correct order for google
+2021-11-03 merge updates from standalone version adapted for SeaDataNet; handle provfiled that 
+    define their own DataIdentification element
  -->
 
     <xsl:output method="text" indent="yes" encoding="UTF-8"/>
@@ -45,9 +48,10 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
 
 
     <xsl:variable name="authorRoles" select="'editor,coAuthor,author,orginator'"/>
-
-<!--    <xsl:template match="//gmd:MD_Metadata | gmi:MI_Metadata">-->
-        <xsl:template name="iso2sdo">
+<!-- for standa alone testing , use the template match; for calling this transform from another sheet, 
+        use tempalte name=. and call template with that name.  -->
+    <xsl:template match="//gmd:MD_Metadata | gmi:MI_Metadata">
+        <!-- <xsl:template name="iso2sdo">  -->
         <xsl:param name="isopath"/>
         <!-- Define variables for content elements -->
         <xsl:variable name="additionalContexts">
@@ -283,7 +287,8 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
         </xsl:variable>
         <xsl:variable name="name">
             <!--select="//gmd:MD_DataIdentification[1]/gmd:citation//gmd:title/gco:CharacterString"-->
-            <xsl:for-each select="//gmd:MD_DataIdentification[1]/gmd:citation//gmd:title">
+            <!-- smr 2021-06-23 update to handle profiles like seaDataNet that have their own DataIdentification element -->
+            <xsl:for-each select="//gmd:identificationInfo[1]//gmd:citation//gmd:title">
                 <xsl:call-template name="CharacterString"/>
             </xsl:for-each>
         </xsl:variable>
@@ -305,14 +310,15 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
                 <xsl:text>]</xsl:text>
             </xsl:if>
         </xsl:variable>
+            <!-- smr 2021-06-23 update to handle profiles like seaDataNet that have their own DataIdentification element -->
         <xsl:variable name="publisher"
-            select="//gmd:MD_DataIdentification/gmd:citation//gmd:citedResponsibleParty[translate(*//@codeListValue, $uppercase, $smallcase) = 'publisher']"/>
+            select="//gmd:identificationInfo//gmd:citation//gmd:citedResponsibleParty[translate(*//@codeListValue, $uppercase, $smallcase) = 'publisher']"/>
 
         <xsl:variable name="citation">
             <!-- ISO19115 only allows one citation per gmd:MD_DataIdentification;  -->
             <!-- ignore MD_DataIdentification that are not in gmd:identificationInfo property -->
             <xsl:for-each
-                select="(//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation)[1]">
+                select="(//gmd:identificationInfo//gmd:citation/gmd:CI_Citation)[1]">
                 <!-- this is just to set the context and make xpaths easier -->
                 <xsl:for-each
                     select="gmd:citedResponsibleParty[(*//@codeListValue = 'author') or (*//@codeListValue = 'originator')]/gmd:CI_ResponsibleParty">
@@ -396,8 +402,9 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
             </xsl:for-each>
         </xsl:variable>
         <xsl:variable name="datePublished">
+            <!-- smr 2021-06-23 update to handle profiles like seaDataNet that have their own DataIdentification element -->
             <xsl:for-each
-                select="(//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation)[1]">
+                select="(//gmd:identificationInfo//gmd:citation/gmd:CI_Citation)[1]">
                 <!-- for-each is just to set the context and make xpaths easier -->
                 <xsl:choose>
                     <xsl:when
@@ -504,7 +511,7 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
                 <!-- use child::node() to catch CharacterString and Anchor -->
                 <xsl:for-each select="gmd:MD_Keywords/gmd:keyword">
                     <xsl:text>"</xsl:text>
-                    <xsl:value-of select="normalize-space(child::node()/text())"/>
+                    <xsl:value-of select="translate(normalize-space(child::node()/text()),'&quot;' , '')"/>
                     <xsl:text>"</xsl:text>
                     <xsl:if test="following-sibling::gmd:keyword">
                         <xsl:text>, </xsl:text>
@@ -621,7 +628,7 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
 
         <!-- construct the JSON with xsl text elements. &#10; is carriage return -->
         <xsl:text>{&#10;  "@context": {&#10;</xsl:text>
-        <xsl:text> "@vocab": "http://schema.org/"</xsl:text>
+        <xsl:text> "@vocab": "https://schema.org/"</xsl:text>
         <xsl:if test="$additionalContexts and string-length($additionalContexts) > 0">
             <xsl:text>, &#10;</xsl:text>
             <xsl:value-of select="$additionalContexts"/>
@@ -931,15 +938,15 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
                 <xsl:for-each select="*//gmd:geographicElement/gmd:EX_GeographicBoundingBox">
                     <!-- handle bounding boxes -->
                     <xsl:text>        {&#10;       "@type": "GeoShape",&#10;          "box": "</xsl:text>
-                    <xsl:value-of select="gmd:westBoundLongitude/gco:Decimal/text()"/>
-                    <xsl:text>, </xsl:text>
                     <xsl:value-of select="gmd:southBoundLatitude/gco:Decimal/text()"/>
-                    <xsl:text> </xsl:text>
-                    <xsl:value-of select="gmd:eastBoundLongitude/gco:Decimal/text()"/>
                     <xsl:text>, </xsl:text>
+                    <xsl:value-of select="gmd:westBoundLongitude/gco:Decimal/text()"/>
+                    <xsl:text> </xsl:text>
                     <xsl:value-of select="gmd:northBoundLatitude/gco:Decimal/text()"/>
+                    <xsl:text>, </xsl:text>
+                    <xsl:value-of select="gmd:eastBoundLongitude/gco:Decimal/text()"/>
                     <xsl:text>"&#10;            }</xsl:text>
-
+                    
                     <xsl:if test="position() != last()">
                         <xsl:text>,&#10;            </xsl:text>
                     </xsl:if>

@@ -33,8 +33,10 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
     match (lines 50,51).	
 2018-12-13 updates to identify current version
 2019-05-29 add CharacterSTring template to remove control characters; apply to abstract
+2019-06-25 fix bounding box to put coordinates in correct order for google
 2021-06-23 SMR create standalone version to generate JSON-LD from ISO19115, adapted for seaDataNet. 
- -->
+2021-11-03 SMR update to correct coordinate order for bounding box
+    -->
 
     <xsl:output method="text" indent="yes" encoding="UTF-8"/>
     <xsl:variable name="smallcase" select="'abcdefghijklmnopqrstuvwxyz'"/>
@@ -935,15 +937,15 @@ ISO The template includes root element xpath for ISO19139 and ISO19139-1 (see li
                 <xsl:for-each select="*//gmd:geographicElement/gmd:EX_GeographicBoundingBox">
                     <!-- handle bounding boxes -->
                     <xsl:text>        {&#10;       "@type": "GeoShape",&#10;          "box": "</xsl:text>
-                    <xsl:value-of select="gmd:westBoundLongitude/gco:Decimal/text()"/>
-                    <xsl:text>, </xsl:text>
                     <xsl:value-of select="gmd:southBoundLatitude/gco:Decimal/text()"/>
-                    <xsl:text> </xsl:text>
-                    <xsl:value-of select="gmd:eastBoundLongitude/gco:Decimal/text()"/>
                     <xsl:text>, </xsl:text>
+                    <xsl:value-of select="gmd:westBoundLongitude/gco:Decimal/text()"/>
+                    <xsl:text> </xsl:text>
                     <xsl:value-of select="gmd:northBoundLatitude/gco:Decimal/text()"/>
+                    <xsl:text>, </xsl:text>
+                    <xsl:value-of select="gmd:eastBoundLongitude/gco:Decimal/text()"/>
                     <xsl:text>"&#10;            }</xsl:text>
-
+                    
                     <xsl:if test="position() != last()">
                         <xsl:text>,&#10;            </xsl:text>
                     </xsl:if>
